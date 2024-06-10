@@ -5,11 +5,11 @@ import torch
 
 # Load the chat model using PEFT
 chat_model_id = "zementalist/llama-3-8B-chat-psychotherapist"
-base_model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
+base_model_id = "unsloth/llama-3-8b-Instruct-bnb-4bit"
 
 chat_config = PeftConfig.from_pretrained(chat_model_id)
 chat_base_model = AutoModelForCausalLM.from_pretrained(base_model_id)
-chat_model = PeftModel.from_pretrained(chat_base_model, chat_model_id, token=access_token)
+chat_model = PeftModel.from_pretrained(chat_base_model, chat_model_id)
 chat_model.to("cuda")  # Ensure the model runs on GPU
 
 chat_tokenizer = AutoTokenizer.from_pretrained(base_model_id)
@@ -17,7 +17,7 @@ chat_tokenizer = AutoTokenizer.from_pretrained(base_model_id)
 # Load the evaluation model directly
 eval_model_id = "klyang/MentaLLaMA-chat-7B-hf"
 eval_tokenizer = AutoTokenizer.from_pretrained(eval_model_id)
-eval_model = AutoModelForCausalLM.from_pretrained(eval_model_id,token=access_token)
+eval_model = AutoModelForCausalLM.from_pretrained(eval_model_id)
 eval_model.to("cuda")  # Ensure the model runs on GPU
 
 # System prompts

@@ -6,11 +6,11 @@ import torch
 # Load the chat model
 model_id = "zementalist/llama-3-8B-chat-psychotherapist"
 config = PeftConfig.from_pretrained(model_id)
-model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path)
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Meta-Llama-3-8B")
 model = PeftModel.from_pretrained(model, model_id)
 model.to("cuda")  # Ensure the model runs on GPU
 
-tokenizer = AutoTokenizer.from_pretrained(config.base_model_name_or_path)
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B")
 
 # System prompts
 chat_system_prompt = "You are a helpful and joyous mental therapy assistant. Always answer as helpfully and cheerfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature."

@@ -5,7 +5,7 @@ import torch
 
 # Load the chat model using PEFT
 chat_model_id = "zementalist/llama-3-8B-chat-psychotherapist"
-base_model_id = "unsloth/llama-3-8b-Instruct-bnb-4bit"
+base_model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
 
 chat_config = PeftConfig.from_pretrained(chat_model_id)
 chat_base_model = AutoModelForCausalLM.from_pretrained(base_model_id)

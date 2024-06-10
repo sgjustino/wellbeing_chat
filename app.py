@@ -3,14 +3,22 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel, PeftConfig
 import torch
 
-# Load the chat model
-model_id = "zementalist/llama-3-8B-chat-psychotherapist"
-config = PeftConfig.from_pretrained(model_id)
-model = AutoModelForCausalLM.from_pretrained("meta-llama/Meta-Llama-3-8B")
-model = PeftModel.from_pretrained(model, model_id)
-model.to("cuda")  # Ensure the model runs on GPU
+# Load the chat model using PEFT
+chat_model_id = "zementalist/llama-3-8B-chat-psychotherapist"
+base_model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
 
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B")
+chat_config = PeftConfig.from_pretrained(chat_model_id)
+chat_base_model = AutoModelForCausalLM.from_pretrained(base_model_id)
+chat_model = PeftModel.from_pretrained(chat_base_model, chat_model_id)
+chat_model.to("cuda")  # Ensure the model runs on GPU
+
+chat_tokenizer = AutoTokenizer.from_pretrained(base_model_id)
+
+# Load the evaluation model directly
+eval_model_id = "klyang/MentaLLaMA-chat-7B-hf"
+eval_tokenizer = AutoTokenizer.from_pretrained(eval_model_id)
+eval_model = AutoModelForCausalLM.from_pretrained(eval_model_id)
+eval_model.to("cuda")  # Ensure the model runs on GPU
 
 # System prompts
 chat_system_prompt = "You are a helpful and joyous mental therapy assistant. Always answer as helpfully and cheerfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature."
@@ -23,21 +31,16 @@ def chat_and_evaluate(user_input):
         {"role": "user", "content": user_input}
     ]
     
-    chat_input_ids = tokenizer.apply_chat_template(
-        chat_messages,
-        add_generation_prompt=True,
-        return_tensors="pt"
-    ).to(model.device)
-
-    chat_outputs = model.generate(
-        chat_input_ids,
+    chat_input_ids = chat_tokenizer(chat_messages, return_tensors="pt").to(chat_model.device)
+    chat_outputs = chat_model.generate(
+        chat_input_ids.input_ids,
         max_new_tokens=256,
-        eos_token_id=tokenizer.eos_token_id,
+        eos_token_id=chat_tokenizer.eos_token_id,
         do_sample=True,
         temperature=0.01
     )
-    chat_response = chat_outputs[0][chat_input_ids.shape[-1]:]
-    chat_output = tokenizer.decode(chat_response, skip_special_tokens=True)
+    chat_response = chat_outputs[0][chat_input_ids.input_ids.shape[-1]:]
+    chat_output = chat_tokenizer.decode(chat_response, skip_special_tokens=True)
     
     # Evaluation model response
     eval_messages = [
@@ -45,21 +48,16 @@ def chat_and_evaluate(user_input):
         {"role": "user", "content": chat_output}
     ]
     
-    eval_input_ids = tokenizer.apply_chat_template(
-        eval_messages,
-        add_generation_prompt=True,
-        return_tensors="pt"
-    ).to(model.device)
-
-    eval_outputs = model.generate(
-        eval_input_ids,
+    eval_input_ids = eval_tokenizer(eval_messages, return_tensors="pt").to(eval_model.device)
+    eval_outputs = eval_model.generate(
+        eval_input_ids.input_ids,
         max_new_tokens=256,
-        eos_token_id=tokenizer.eos_token_id,
+        eos_token_id=eval_tokenizer.eos_token_id,
         do_sample=True,
         temperature=0.01
     )
-    eval_response = eval_outputs[0][eval_input_ids.shape[-1]:]
-    eval_output = tokenizer.decode(eval_response, skip_special_tokens=True)
+    eval_response = eval_outputs[0][eval_input_ids.input_ids.shape[-1]:]
+    eval_output = eval_tokenizer.decode(eval_response, skip_special_tokens=True)
     
     return chat_output, eval_output
 

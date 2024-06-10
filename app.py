@@ -12,7 +12,7 @@ base_model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
 
 chat_config = PeftConfig.from_pretrained(model_id, token=access_token)
 chat_base_model = AutoModelForCausalLM.from_pretrained(base_model_id, token=access_token)
-chat_model = PeftModel.from_pretrained(chat_base_model, model_id, token=access_token)
+chat_model = PeftModel.from_pretrained(chat_base_model, chat_model_id, token=access_token)
 chat_model.to("cuda")  # Ensure the model runs on GPU
 
 chat_tokenizer = AutoTokenizer.from_pretrained(base_model_id, token=access_token)

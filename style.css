@@ -1,19 +1,19 @@
 body {
-    background-color: #282c34;
+    background-color: #F4E3D7;  /* Background color from the palette */
     font-family: 'Comic Sans MS', cursive, sans-serif;
-    color: #ffffff;
+    color: #142B43;  /* Text color */
 }
 
 .gradio-container {
     display: flex;
     height: 100vh;
     width: 100vw;
-    background-color: #20232a;
+    background-color: #F7EDE4;  /* Container background color from the palette */
 }
 
 #left-pane {
-    background-color: #3b4048;
-    border-right: 2px solid #61dafb;
+    background-color: #ECEBC5;  /* Left pane background color from the palette */
+    border-right: 2px solid #E9746A;  /* Border color from the palette */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -22,7 +22,7 @@ body {
 }
 
 #right-pane {
-    background-color: #3b4048;
+    background-color: #D0836E;  /* Right pane background color from the palette */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -31,20 +31,20 @@ body {
 
 input, textarea {
     border-radius: 8px;
-    border: 1px solid #61dafb;
+    border: 1px solid #E9746A;  /* Border color from the palette */
     padding: 10px;
     font-size: 16px;
-    background-color: #20232a;
-    color: #ffffff;
+    background-color: #F1B39C;  /* Input background color from the palette */
+    color: #142B43;  /* Input text color */
 }
 
 input:focus, textarea:focus {
-    border-color: #21a1f1;
+    border-color: #CC533E;  /* Focus border color from the palette */
     outline: none;
 }
 
 h2 {
-    color: #61dafb;
+    color: #E9746A;  /* Heading text color from the palette */
     font-size: 24px;
     font-weight: bold;
     text-align: center;

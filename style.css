@@ -49,10 +49,10 @@ h2 {
     text-align: center;
 }
 
-button#submit-button {
-    background-color: #ECD9D2 !important;  /* Submit button color */
+#submit-button {
+    background-color: #ECD9D2;  /* Submit button color */
     border: none;
-    color: #142B43 !important;
+    color: #142B43;
     padding: 10px 20px;
     text-align: center;
     text-decoration: none;
@@ -62,8 +62,8 @@ button#submit-button {
     cursor: pointer;
 }
 
-button#submit-button:hover {
-    background-color: #EBCDC3 !important;  /* Submit button hover color */
+#submit-button:hover {
+    background-color: #EBCDC3;  /* Submit button hover color */
 }
 
 #component-2, #component-4 {

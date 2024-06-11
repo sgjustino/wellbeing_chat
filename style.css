@@ -8,12 +8,12 @@ body {
     display: flex;
     height: 100vh;
     width: 100vw;
-    background-color: #F7D9C4;  /* Container background color from the palette */
+    background-color: #F8EDEB;  /* Container background color from the palette */
 }
 
 #left-pane {
-    background-color: #FFDCA9;  /* Left pane background color from the palette */
-    border-right: 2px solid #F8C8C8;  /* Border color from the palette */
+    background-color: #ECD9D2;  /* Left pane background color from the palette */
+    border-right: 2px solid #E0C5BB;  /* Border color from the palette */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -22,7 +22,8 @@ body {
 }
 
 #right-pane {
-    background-color: #FBDFC1;  /* Right pane background color from the palette */
+    background-color: #ECD9D2;  /* Right pane background color from the palette */
+    border-right: 2px solid #E0C5BB;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -31,20 +32,20 @@ body {
 
 input, textarea {
     border-radius: 8px;
-    border: 1px solid #F8C8C8;  /* Border color from the palette */
+    border: 1px solid #EBCDC3;  /* Border color from the palette */
     padding: 10px;
     font-size: 16px;
-    background-color: #FCF9BE;  /* Input background color from the palette */
+    background-color: #F6EBE7;  /* Input background color from the palette */
     color: #142B43;  /* Input text color */
 }
 
 input:focus, textarea:focus {
-    border-color: #F7D9C4;  /* Focus border color from the palette */
+    border-color: #F7F4F1;  /* Focus border color from the palette */
     outline: none;
 }
 
 h2 {
-    color: #F8C8C8;  /* Heading text color from the palette */
+    color: #EBCDC3;  /* Heading text color from the palette */
     font-size: 24px;
     font-weight: bold;
     text-align: center;

@@ -1,45 +1,50 @@
 body {
-    background-color: #F3F4F6;
+    background-color: #282c34;
     font-family: 'Comic Sans MS', cursive, sans-serif;
+    color: #ffffff;
 }
 
 .gradio-container {
     display: flex;
     height: 100vh;
     width: 100vw;
+    background-color: #20232a;
 }
 
 #left-pane {
-    background-color: #FFF;
-    border-right: 2px solid #CBD5E0;
+    background-color: #3b4048;
+    border-right: 2px solid #61dafb;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: space-between;
+    height: 100%;
 }
 
 #right-pane {
-    background-color: #FFF;
+    background-color: #3b4048;
     padding: 20px;
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 input, textarea {
     border-radius: 8px;
-    border: 1px solid #CBD5E0;
+    border: 1px solid #61dafb;
     padding: 10px;
     font-size: 16px;
-    background-color: #FFF;
+    background-color: #20232a;
+    color: #ffffff;
 }
 
 input:focus, textarea:focus {
-    border-color: #A0AEC0;
+    border-color: #21a1f1;
     outline: none;
 }
 
 h2 {
-    color: #4A5568;
+    color: #61dafb;
     font-size: 24px;
     font-weight: bold;
     text-align: center;

@@ -9,7 +9,7 @@ body {
     width: 100vw;
 }
 
-.left-pane {
+#left-pane {
     background-color: #FFF;
     border-right: 2px solid #CBD5E0;
     padding: 20px;
@@ -18,7 +18,7 @@ body {
     justify-content: flex-end;
 }
 
-.right-pane {
+#right-pane {
     background-color: #FFF;
     padding: 20px;
     display: flex;

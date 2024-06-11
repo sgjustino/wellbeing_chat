@@ -8,11 +8,12 @@ body {
     display: flex;
     height: 100vh;
     width: 100vw;
-    background-color: #F8EDEB;  /* Container background color from the palette */
+    background-color: #F6EBE7;  /* Container background color from the palette */
 }
 
 #left-pane {
-    background-color: #F8EDEB;  /* Left pane background color from the palette */
+    background-color: #EBCDC3;  /* Left pane background color from the palette */
+    border-right: 2px solid #F8EDEB;  /* Border color from the palette */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -21,7 +22,7 @@ body {
 }
 
 #right-pane {
-    background-color: #F8EDEB;  /* Right pane background color from the palette */
+    background-color: #EBCDC3;  /* Right pane background color from the palette */
     padding: 20px;
     display: flex;
     flex-direction: column;

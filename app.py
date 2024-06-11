@@ -37,15 +37,22 @@ def chat_and_evaluate(user_input):
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
-    with gr.Row():
-        with gr.Column(elem_id="left-pane"):
-            chat_output = gr.Textbox(label="Chat", interactive=False, placeholder="Chat responses will appear here...", lines=20)
-            chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...")
-            chat_submit = gr.Button("Submit")
-        with gr.Column(elem_id="right-pane"):
-            eval_output = gr.Textbox(label="Evaluation Response", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
+    with gr.Tabs():
+        with gr.TabItem("About"):
+            gr.Markdown("""
+            ## About
+            This is a mental health assistant designed to provide supportive conversations. It aims to offer helpful and cheerful responses to improve mental well-being until professional help can be sought.
+            """)
+        with gr.TabItem("Chat", elem_id="chat-tab"):
+            with gr.Row():
+                with gr.Column(elem_id="left-pane"):
+                    chat_output = gr.Textbox(label="Chat", interactive=False, placeholder="Chat responses will appear here...", lines=20)
+                    chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...")
+                    chat_submit = gr.Button("Submit", elem_id="submit-button")
+                with gr.Column(elem_id="right-pane"):
+                    eval_output = gr.Textbox(label="Evaluation Response", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
 
-    chat_submit.click(fn=chat_and_evaluate, inputs=chat_input, outputs=[chat_output, eval_output])
+            chat_submit.click(fn=chat_and_evaluate, inputs=chat_input, outputs=[chat_output, eval_output])
 
 # Launch the Gradio app
 interface.launch()

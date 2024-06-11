@@ -8,7 +8,7 @@ body {
     display: flex;
     height: 100vh;
     width: 100vw;
-    background-color: #D29A89;  /* Container background color from the palette */
+    background-color: #EBC5BB;  /* Container background color from the palette */
 }
 
 #left-pane {
@@ -76,16 +76,14 @@ h2 {
 }
 
 /* Specific colors for each tab */
-.gradio-tabitem:first-child {
+.gradio-tabitem:first-child .gradio-container {
     background-color: #EBCDC3;  /* About tab background color */
-    border: 1px solid #EBCDC3;  /* Border color */
     padding: 20px;
     border-radius: 8px;
 }
 
-.gradio-tabitem:nth-child(2) {
+.gradio-tabitem:nth-child(2) .gradio-container {
     background-color: #EBCDC3;  /* Chat tab background color */
-    border: 1px solid #EBCDC3;  /* Border color */
     padding: 20px;
     border-radius: 8px;
 }

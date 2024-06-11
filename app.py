@@ -46,7 +46,7 @@ with gr.Blocks(css="style.css") as interface:
         with gr.TabItem("Chat", elem_id="chat-tab"):
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
-                    chat_output = gr.Textbox(label="Chat", interactive=False, placeholder="Chat responses will appear here...", lines=20)
+                    chat_output = gr.Textbox(label="Chat", interactive=False, placeholder="Hi there, how are you today?", lines=20)
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...")
                     chat_submit = gr.Button("Submit", elem_id="submit-button")
                 with gr.Column(elem_id="right-pane"):

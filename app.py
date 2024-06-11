@@ -2,31 +2,27 @@ import os
 import json
 import gradio as gr
 from huggingface_hub import InferenceClient
-from huggingface_hub.utils import InferenceTimeoutError
 
 # Retrieve the access token from the environment variable
 access_token = os.getenv("access_token")
 
 # Initialize Inference API client for the model
 model_id = "unsloth/llama-3-8b-bnb-4bit"
-client = InferenceClient(model=model_id, token=access_token, timeout=1000)  # Increased timeout to 300 seconds
+client = InferenceClient(model=model_id, token=access_token, timeout=300)  # Increased timeout to 300 seconds
 
 # System prompts
 chat_system_prompt = "You are a helpful and joyous mental therapy assistant. Always answer as helpfully and cheerfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature."
 eval_system_prompt = "You are a trained psychologist who is examining the interaction between a mental health assistant and someone who is troubled. Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX"
 
 def call_llm(client: InferenceClient, prompt: str):
-    try:
-        response = client.post(
-            json={
-                "inputs": prompt,
-                "parameters": {"max_new_tokens": 256},
-                "task": "text-generation",
-            },
-        )
-        return json.loads(response.decode())[0]["generated_text"]
-    except InferenceTimeoutError:
-        return "The model is still loading. Please try again in a few moments."
+    response = client.post(
+        json={
+            "inputs": prompt,
+            "parameters": {"max_new_tokens": 256},
+            "task": "text-generation",
+        },
+    )
+    return json.loads(response.decode())[0]["generated_text"]
 
 def chat_and_evaluate(user_input):
     # Chat model response

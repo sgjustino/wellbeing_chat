@@ -8,7 +8,7 @@ access_token = os.getenv("access_token")
 
 # Initialize Inference API client for the model
 model_id = "unsloth/llama-3-8b-bnb-4bit"
-client = InferenceClient(model=model_id, token=access_token, timeout=120)
+client = InferenceClient(model=model_id, token=access_token, timeout=300)
 
 # System prompts
 chat_system_prompt = "You are a helpful and joyous mental therapy assistant. Always answer as helpfully and cheerfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature."

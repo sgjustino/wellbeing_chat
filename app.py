@@ -39,13 +39,14 @@ def chat_and_evaluate(user_input):
 with gr.Blocks(css="style.css") as interface:
     with gr.Row():
         with gr.Column(elem_id="left-pane"):
-            chat_output = gr.Textbox(label="Chat", interactive=False, placeholder="Chat responses will appear here...")
+            chat_output = gr.Textbox(label="Chat", interactive=False, placeholder="Chat responses will appear here...", lines=20)
             chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...")
             chat_submit = gr.Button("Submit")
         with gr.Column(elem_id="right-pane"):
             eval_output = gr.Textbox(label="Evaluation Response", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
 
     chat_submit.click(fn=chat_and_evaluate, inputs=chat_input, outputs=[chat_output, eval_output])
+
 
 # Launch the Gradio app
 interface.launch()

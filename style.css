@@ -12,8 +12,8 @@ body {
 }
 
 #left-pane {
-    background-color: #ECD9D2;  /* Left pane background color from the palette */
-    border-right: 2px solid #E0C5BB;  /* Border color from the palette */
+    background-color: #F8EDEB;  /* Left pane background color from the palette */
+    border-right: 2px solid #F8EDEB;  /* Border color from the palette */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -22,8 +22,8 @@ body {
 }
 
 #right-pane {
-    background-color: #ECD9D2;  /* Right pane background color from the palette */
-    border-right: 2px solid #E0C5BB;
+    background-color: #F8EDEB;  /* Right pane background color from the palette */
+    border-right: 2px solid #F8EDEB;
     padding: 20px;
     display: flex;
     flex-direction: column;

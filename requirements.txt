@@ -3,5 +3,3 @@ gradio
 transformers
 peft
 torch
-bitsandbytes
-accelerate

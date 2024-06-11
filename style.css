@@ -1,5 +1,5 @@
 body {
-    background-color: #F4E3D7;  /* Background color from the palette */
+    background-color: #F8EDEB;  /* Background color from the palette */
     font-family: 'Comic Sans MS', cursive, sans-serif;
     color: #142B43;  /* Text color */
 }
@@ -8,12 +8,12 @@ body {
     display: flex;
     height: 100vh;
     width: 100vw;
-    background-color: #F7EDE4;  /* Container background color from the palette */
+    background-color: #F7D9C4;  /* Container background color from the palette */
 }
 
 #left-pane {
-    background-color: #ECEBC5;  /* Left pane background color from the palette */
-    border-right: 2px solid #E9746A;  /* Border color from the palette */
+    background-color: #FFDCA9;  /* Left pane background color from the palette */
+    border-right: 2px solid #F8C8C8;  /* Border color from the palette */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -22,7 +22,7 @@ body {
 }
 
 #right-pane {
-    background-color: #D0836E;  /* Right pane background color from the palette */
+    background-color: #FBDFC1;  /* Right pane background color from the palette */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -31,20 +31,20 @@ body {
 
 input, textarea {
     border-radius: 8px;
-    border: 1px solid #E9746A;  /* Border color from the palette */
+    border: 1px solid #F8C8C8;  /* Border color from the palette */
     padding: 10px;
     font-size: 16px;
-    background-color: #F1B39C;  /* Input background color from the palette */
+    background-color: #FCF9BE;  /* Input background color from the palette */
     color: #142B43;  /* Input text color */
 }
 
 input:focus, textarea:focus {
-    border-color: #CC533E;  /* Focus border color from the palette */
+    border-color: #F7D9C4;  /* Focus border color from the palette */
     outline: none;
 }
 
 h2 {
-    color: #E9746A;  /* Heading text color from the palette */
+    color: #F8C8C8;  /* Heading text color from the palette */
     font-size: 24px;
     font-weight: bold;
     text-align: center;

@@ -1,24 +1,13 @@
 import os
 import gradio as gr
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import PeftModel, PeftConfig
-import torch
+from huggingface_hub import InferenceClient
 
+# Retrieve the access token from the environment variable
 access_token = os.getenv("access_token")
 
-# Load the chat model using PEFT
-chat_model_id = "zementalist/llama-3-8B-chat-psychotherapist"
-base_model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
-
-eval_tokenizer = AutoTokenizer.from_pretrained("unsloth/llama-3-8b-bnb-4bit", token=access_token)
-eval_model = AutoModelForCausalLM.from_pretrained("unsloth/llama-3-8b-bnb-4bit", token=access_token)
-chat_model.to("cuda")  # Ensure the model runs on GPU
-
-# Load the evaluation model directly with the access token
-eval_model_id = "klyang/MentaLLaMA-chat-7B-hf"
-eval_tokenizer = AutoTokenizer.from_pretrained("unsloth/llama-3-8b-bnb-4bit", token=access_token)
-eval_model = AutoModelForCausalLM.from_pretrained("unsloth/llama-3-8b-bnb-4bit", token=access_token)
-eval_model.to("cuda")  # Ensure the model runs on GPU
+# Initialize Inference API client for the model
+model_id = "unsloth/llama-3-8b-bnb-4bit"
+client = InferenceClient(model=model_id, token=access_token)
 
 # System prompts
 chat_system_prompt = "You are a helpful and joyous mental therapy assistant. Always answer as helpfully and cheerfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature."
@@ -26,38 +15,28 @@ eval_system_prompt = "You are a trained psychologist who is examining the intera
 
 def chat_and_evaluate(user_input):
     # Chat model response
-    chat_messages = [
-        {"role": "system", "content": chat_system_prompt},
-        {"role": "user", "content": user_input}
-    ]
-    
-    chat_input_ids = chat_tokenizer(chat_messages, return_tensors="pt").to(chat_model.device)
-    chat_outputs = chat_model.generate(
-        chat_input_ids.input_ids,
-        max_new_tokens=256,
-        eos_token_id=chat_tokenizer.eos_token_id,
-        do_sample=True,
-        temperature=0.01
-    )
-    chat_response = chat_outputs[0][chat_input_ids.input_ids.shape[-1]:]
-    chat_output = chat_tokenizer.decode(chat_response, skip_special_tokens=True)
-    
+    chat_input = {
+        "inputs": f"{chat_system_prompt}\nUser: {user_input}",
+        "parameters": {
+            "max_new_tokens": 256,
+            "do_sample": True,
+            "temperature": 0.01
+        }
+    }
+    chat_response = client(inputs=chat_input["inputs"], parameters=chat_input["parameters"])
+    chat_output = chat_response.get("generated_text", "")
+
     # Evaluation model response
-    eval_messages = [
-        {"role": "system", "content": eval_system_prompt},
-        {"role": "user", "content": chat_output}
-    ]
-    
-    eval_input_ids = eval_tokenizer(eval_messages, return_tensors="pt").to(eval_model.device)
-    eval_outputs = eval_model.generate(
-        eval_input_ids.input_ids,
-        max_new_tokens=256,
-        eos_token_id=eval_tokenizer.eos_token_id,
-        do_sample=True,
-        temperature=0.01
-    )
-    eval_response = eval_outputs[0][eval_input_ids.input_ids.shape[-1]:]
-    eval_output = eval_tokenizer.decode(eval_response, skip_special_tokens=True)
+    eval_input = {
+        "inputs": f"{eval_system_prompt}\nAssistant: {chat_output}",
+        "parameters": {
+            "max_new_tokens": 256,
+            "do_sample": True,
+            "temperature": 0.01
+        }
+    }
+    eval_response = client(inputs=eval_input["inputs"], parameters=eval_input["parameters"])
+    eval_output = eval_response.get("generated_text", "")
     
     return chat_output, eval_output
 
@@ -65,7 +44,7 @@ def chat_and_evaluate(user_input):
 interface = gr.Interface(
     fn=chat_and_evaluate,
     inputs="text",
-    outputs=[gr.outputs.Textbox(label="Chat Response"), gr.outputs.Textbox(label="Evaluation Response")],
+    outputs=[gr.Textbox(label="Chat Response"), gr.Textbox(label="Evaluation Response")],
     live=True
 )
 

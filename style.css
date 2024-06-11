@@ -13,7 +13,6 @@ body {
 
 #left-pane {
     background-color: #F8EDEB;  /* Left pane background color from the palette */
-    border-right: 2px solid #F8EDEB;  /* Border color from the palette */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -23,7 +22,6 @@ body {
 
 #right-pane {
     background-color: #F8EDEB;  /* Right pane background color from the palette */
-    border-right: 2px solid #F8EDEB;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -49,6 +47,23 @@ h2 {
     font-size: 24px;
     font-weight: bold;
     text-align: center;
+}
+
+#submit-button {
+    background-color: #ECD9D2;  /* Submit button color */
+    border: none;
+    color: #142B43;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#submit-button:hover {
+    background-color: #EBCDC3;  /* Submit button hover color */
 }
 
 #component-2, #component-4 {

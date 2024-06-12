@@ -27,7 +27,7 @@ headers = {
 }
 
 # System prompts
-chat_system_prompt = "You are a helpful and joyous mental therapy assistant named Averie. Always answer conversationally in a personable way and as helpful and cheerful as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature."
+chat_system_prompt = "You are a helpful and joyous mental therapy assistant named Averie. Always answer as helpfully and cheerfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature."
 eval_system_prompt = "You are a trained psychologist named Cora who is examining the interaction between a mental health assistant and someone who is troubled. Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX"
 
 def call_api(prompt: str):
@@ -45,12 +45,12 @@ def chat_and_evaluate(user_input, chat_history):
     chat_history.append(f"User: {user_input}")
     chat_history.append("Averie is typing...")
 
-    # Chat model response
-    chat_prompt = f"{chat_system_prompt}\nUser: {user_input}"
+    # Create chat prompt with entire chat history
+    chat_prompt = chat_system_prompt + "\n" + "\n".join(chat_history)
     chat_output = call_api(chat_prompt)
     
-    # Evaluation model response
-    eval_prompt = f"{eval_system_prompt}\nUser: {user_input}"
+    # Create evaluation prompt with entire chat history
+    eval_prompt = eval_system_prompt + "\n" + "\n".join(chat_history)
     eval_output = call_api(eval_prompt)
 
     # Update chat history with Averie's response
@@ -66,22 +66,22 @@ with gr.Blocks(css="style.css") as interface:
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
-                    chat_output = gr.HTML(label="Averie", elem_id="chat-output")
+                    chat_output = gr.HTML(elem_id="chat-output")
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=2)
                     chat_submit = gr.Button("Submit", elem_id="submit-button")
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
-                    eval_output = gr.Textbox(label="Cora", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
+                    eval_output = gr.HTML(elem_id="eval-output")
                     chat_history = gr.State([])
 
             def handle_submit(user_input, chat_history):
                 # Show typing indicator
                 updated_chat_history = chat_history + [f"User: {user_input}", "Averie is typing..."]
-                yield gr.update(value=format_chat(updated_chat_history)), gr.update(value="Evaluation in progress...")
+                yield gr.update(value=format_chat(updated_chat_history), scroll_to_end=True), gr.update(value="Evaluation in progress...")
 
                 # Process chat and evaluation
                 chat_response, eval_response = chat_and_evaluate(user_input, chat_history)
-                yield gr.update(value=format_chat(chat_response)), eval_response
+                yield gr.update(value=format_chat(chat_response), scroll_to_end=True), eval_response
 
             chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
             chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])  # Submit on Enter

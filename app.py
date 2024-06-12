@@ -62,6 +62,28 @@ def chat_and_evaluate(user_input, chat_history):
     # Return updated history and evaluation output
     return chat_output_words, eval_output
 
+def handle_submit(user_input, chat_history):
+    # Append user input to chat history
+    chat_history.append(f"<div class='user-message'>User: {user_input}</div>")
+    chat_history.append("<div class='typing-indicator'>Averie is typing...</div>")
+    
+    # Process chat and evaluation
+    chat_output_words, eval_response = chat_and_evaluate(user_input, chat_history)
+    
+    # Word-by-word output for Averie's response
+    averie_response = ""
+    for i in range(len(chat_output_words)):
+        word = chat_output_words[i]
+        averie_response += f" {word}"
+        typing_indicator = "." * ((i % 3) + 1)
+        chat_history[-1] = f"<div class='typing-indicator'>Averie is typing{typing_indicator}</div>"
+        yield "\n".join(chat_history), eval_response
+        time.sleep(0.1)  # Adjust the delay between words as needed
+    
+    # Final response without typing indicator
+    chat_history[-1] = f"<div class='averie-message'>{averie_response.strip()}</div>"
+    yield "\n".join(chat_history), eval_response
+
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
     with gr.Tabs():
@@ -94,28 +116,6 @@ with gr.Blocks(css="style.css") as interface:
                     
                 chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
                 chat_input.submit(submit_on_enter)
-
-            def handle_submit(user_input, chat_history):
-                # Append user input to chat history
-                chat_history.append(f"<div class='user-message'>User: {user_input}</div>")
-                chat_history.append("<div class='typing-indicator'>Averie is typing...</div>")
-                
-                # Process chat and evaluation
-                chat_output_words, eval_response = chat_and_evaluate(user_input, chat_history)
-                
-                # Word-by-word output for Averie's response
-                averie_response = ""
-                for i in range(len(chat_output_words)):
-                    word = chat_output_words[i]
-                    averie_response += f" {word}"
-                    typing_indicator = "." * ((i % 3) + 1)
-                    chat_history[-1] = f"<div class='typing-indicator'>Averie is typing{typing_indicator}</div>"
-                    yield "\n".join(chat_history), eval_response
-                    time.sleep(0.1)  # Adjust the delay between words as needed
-                
-                # Final response without typing indicator
-                chat_history[-1] = f"<div class='averie-message'>{averie_response.strip()}</div>"
-                yield "\n".join(chat_history), eval_response
 
 # Launch the Gradio app
 interface.launch(share=True)

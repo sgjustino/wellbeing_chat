@@ -92,8 +92,8 @@ with gr.Blocks(css="style.css") as interface:
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.Textbox(label="Cora", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
                     
-                chat_input.submit(chat_submit.click, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
-                chat_input.change(submit_on_enter)
+                chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
+                chat_input.submit(submit_on_enter)
 
             def handle_submit(user_input, chat_history):
                 # Append user input to chat history
@@ -116,8 +116,6 @@ with gr.Blocks(css="style.css") as interface:
                 # Final response without typing indicator
                 chat_history[-1] = f"<div class='averie-message'>{averie_response.strip()}</div>"
                 yield "\n".join(chat_history), eval_response
-
-            chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
 
 # Launch the Gradio app
 interface.launch(share=True)

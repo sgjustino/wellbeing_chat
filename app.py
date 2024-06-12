@@ -53,10 +53,10 @@ def chat_fn(user_input, history):
     eval_prompt = eval_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}"
     eval_output = call_api(eval_prompt)
 
-    return history, eval_output
+    return chat_output, history, eval_output
 
 def chat_interface(user_input, chat_history):
-    updated_chat_history, eval_response = chat_fn(user_input, chat_history)
+    chat_output, updated_chat_history, eval_response = chat_fn(user_input, chat_history)
     return updated_chat_history, eval_response
 
 # Set up the Gradio interface
@@ -66,22 +66,16 @@ with gr.Blocks(css="style.css") as interface:
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
-                    chatbot = gr.Chatbot(elem_id="chat-output", label="Chat with Averie")
-                    chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=2)
-                    chat_submit = gr.Button("Submit", elem_id="submit-button")
+                    chat_interface_component = gr.ChatInterface(
+                        fn=chat_interface,
+                        submit_btn="Submit",
+                        fill_height=True
+                    )
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
                     chat_history = gr.State([])
 
-            def handle_submit(user_input, chat_history):
-                # Process chat and evaluation
-                updated_chat_history, eval_response = chat_interface(user_input, chat_history)
-                return updated_chat_history, eval_response
-
-            chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chatbot, eval_output])
-            chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chatbot, eval_output])
-        
         with gr.TabItem("About"):
             gr.Markdown("""
             ## About Averie and Cora

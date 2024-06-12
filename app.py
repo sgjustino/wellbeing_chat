@@ -34,11 +34,14 @@ def call_api(prompt: str):
     payload = payload_template.copy()
     payload["messages"] = [{"role": "user", "content": prompt}]
     response = requests.post(url, json=payload, headers=headers)
-    choices = response.json()
-    if isinstance(choices, list) and len(choices) > 0:
-        return choices[0]["choices"][0]["delta"]["content"]
-    else:
-        return "No valid response received from the API."
+    try:
+        choices = response.json()
+        if isinstance(choices, list) and len(choices) > 0:
+            return choices[0]["choices"][0]["delta"]["content"]
+        else:
+            return "No valid response received from the API."
+    except json.JSONDecodeError:
+        return "Failed to decode API response."
 
 def chat_fn(user_input, history):
     # Create chat prompt with entire chat history
@@ -64,14 +67,14 @@ with gr.Blocks(css="style.css") as interface:
     with gr.Tabs():
         with gr.TabItem("Chat", elem_id="chat-tab"):
             with gr.Row():
-                with gr.Column(elem_id="left-pane"):
+                with gr.Column(elem_id="left-pane", scale=1):
                     gr.Markdown("### Chat with Averie")
                     chat_interface_component = gr.ChatInterface(
                         fn=chat_interface,
                         submit_btn="Submit",
                         fill_height=True
                     )
-                with gr.Column(elem_id="right-pane"):
+                with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
                     chat_history = gr.State([])

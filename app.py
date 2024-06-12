@@ -34,9 +34,9 @@ def call_api(prompt: str):
     payload = payload_template.copy()
     payload["messages"] = [{"role": "user", "content": prompt}]
     response = requests.post(url, json=payload, headers=headers)
-    choices = response.json().get("choices", [])
-    if choices and "message" in choices[0]:
-        return choices[0]["message"]["content"]
+    choices = response.json()
+    if isinstance(choices, list) and len(choices) > 0:
+        return choices[0].get("message", {}).get("content", "No valid response received from the API.")
     else:
         return "No valid response received from the API."
 
@@ -53,7 +53,7 @@ def chat_fn(user_input, history):
     eval_prompt = eval_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}"
     eval_output = call_api(eval_prompt)
 
-    return history, eval_output
+    return chat_output, history, eval_output
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
@@ -68,6 +68,13 @@ with gr.Blocks(css="style.css") as interface:
                     eval_output = gr.HTML(elem_id="eval-output")
                     chat_history = gr.State([])
 
+            def handle_submit(user_input, chat_history):
+                # Process chat and evaluation
+                chat_output, updated_chat_history, eval_response = chat_fn(user_input, chat_history)
+                return updated_chat_history, gr.update(value=eval_response)
+
+            chatbot.submit(fn=handle_submit, inputs=[chatbot.textbox, chat_history], outputs=[chatbot.chatbot, eval_output])
+        
         with gr.TabItem("About"):
             gr.Markdown("""
             ## About Averie and Cora

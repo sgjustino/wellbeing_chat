@@ -99,19 +99,19 @@ h2 {
 }
 
 .user-message {
-    background-color: #f1f0f0;
+    background-color: #ECD9D2;
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 10px;
-    border: 1px solid #d4d4d4;
+    border: 1px solid #D29A89;
 }
 
 .averie-message {
-    background-color: #d4e4ff;
+    background-color: #EBC5BB;
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 10px;
-    border: 1px solid #a4c4ff;
+    border: 1px solid #D29A89;
 }
 
 .typing-indicator {

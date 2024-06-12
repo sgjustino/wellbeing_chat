@@ -2,6 +2,7 @@ import os
 import json
 import gradio as gr
 import requests
+import time
 
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
@@ -48,6 +49,7 @@ def chat_and_evaluate(user_input, chat_history):
     # Chat model response
     chat_prompt = f"{chat_system_prompt}\nUser: {user_input}"
     chat_output = call_api(chat_prompt)
+    chat_output_words = chat_output.split()
     
     # Evaluation model response
     eval_prompt = f"{eval_system_prompt}\nUser: {user_input}"
@@ -57,7 +59,8 @@ def chat_and_evaluate(user_input, chat_history):
     chat_history[-1] = f"Averie: {chat_output}"
 
     # Return updated history and evaluation output
-    return "\n".join(chat_history), eval_output
+    return chat_output_words, eval_output
+
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
@@ -79,21 +82,40 @@ with gr.Blocks(css="style.css") as interface:
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
                     chat_output = gr.Textbox(label="Averie", interactive=False, placeholder="Hi there, I am Averie. How are you today?", lines=20)
-                    chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...")
-                    chat_submit = gr.Button("Submit", elem_id="submit-button")
+                    chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=1)
+                    chat_submit = gr.Button("Submit", elem_id="submit-button", variant="primary")
+                    def submit_on_enter(event):
+                        if event.key == "Enter":
+                            return chat_submit.click()
+                            
+                    chat_input.submit(chat_submit.click, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
+                    chat_input.change(submit_on_enter)
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.Textbox(label="Cora", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
                     chat_history = gr.State([])
 
             def handle_submit(user_input, chat_history):
-                # Show typing indicator
-                updated_chat_history = chat_history + [f"User: {user_input}", "Averie is typing..."]
-                yield "\n".join(updated_chat_history), gr.update(value="Evaluation in progress...")
-
+                # Append user input to chat history
+                chat_history.append(f"<div class='user-message'>User: {user_input}</div>")
+                chat_history.append("<div class='typing-indicator'>Averie is typing...</div>")
+                
                 # Process chat and evaluation
-                chat_response, eval_response = chat_and_evaluate(user_input, chat_history)
-                yield chat_response, eval_response
+                chat_output_words, eval_response = chat_and_evaluate(user_input, chat_history)
+                
+                # Word-by-word output for Averie's response
+                averie_response = ""
+                for i in range(len(chat_output_words)):
+                    word = chat_output_words[i]
+                    averie_response += f" {word}"
+                    typing_indicator = "." * ((i % 3) + 1)
+                    chat_history[-1] = f"<div class='typing-indicator'>Averie is typing{typing_indicator}</div>"
+                    yield "\n".join(chat_history), eval_response
+                    time.sleep(0.1)  # Adjust the delay between words as needed
+                
+                # Final response without typing indicator
+                chat_history[-1] = f"<div class='averie-message'>{averie_response.strip()}</div>"
+                yield "\n".join(chat_history), eval_response
 
             chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
 

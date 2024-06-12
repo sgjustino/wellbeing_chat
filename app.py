@@ -2,6 +2,7 @@ import os
 import json
 import gradio as gr
 import requests
+import time
 
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
@@ -43,21 +44,31 @@ def call_api(prompt: str):
 def chat_and_evaluate(user_input, chat_history):
     # Update chat history with user input and typing indicator
     chat_history.append(f"User: {user_input}")
-    chat_history.append("Averie is typing...")
+    yield "\n".join(chat_history), gr.update(value="Evaluation in progress...")
+
+    # Typing effect for "Averie is typing..."
+    typing_effect = "Averie is typing"
+    for i in range(3):
+        chat_history[-1] = typing_effect + "." * (i % 3 + 1)
+        yield "\n".join(chat_history), gr.update(value="Evaluation in progress...")
+        time.sleep(0.5)
 
     # Chat model response
     chat_prompt = f"{chat_system_prompt}\nUser: {user_input}"
     chat_output = call_api(chat_prompt)
-    
+
+    # Typing effect for chat response
+    chat_history[-1] = "Averie: "
+    for letter in chat_output:
+        chat_history[-1] += letter
+        yield "\n".join(chat_history), gr.update(value="Evaluation in progress...")
+        time.sleep(0.05)
+
     # Evaluation model response
     eval_prompt = f"{eval_system_prompt}\nUser: {user_input}"
     eval_output = call_api(eval_prompt)
-
-    # Update chat history with Averie's response
-    chat_history[-1] = f"Averie: {chat_output}"
-
-    # Return updated history and evaluation output
-    return "\n".join(chat_history), eval_output
+    
+    yield "\n".join(chat_history), eval_output
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
@@ -87,13 +98,7 @@ with gr.Blocks(css="style.css") as interface:
                     chat_history = gr.State([])
 
             def handle_submit(user_input, chat_history):
-                # Show typing indicator
-                updated_chat_history = chat_history + [f"User: {user_input}", "Averie is typing..."]
-                yield "\n".join(updated_chat_history), gr.update(value="Evaluation in progress...")
-
-                # Process chat and evaluation
-                chat_response, eval_response = chat_and_evaluate(user_input, chat_history)
-                yield chat_response, eval_response
+                return chat_and_evaluate(user_input, chat_history)
 
             chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
 

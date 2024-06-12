@@ -61,7 +61,7 @@ with gr.Blocks(css="style.css") as interface:
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
-                    chatbot = gr.ChatInterface(chat_fn, title="Averie Chatbot", description="Chat with Averie, your mental therapy assistant.", show_progress="full")
+                    chatbot = gr.ChatInterface(chat_fn, title="Averie Chatbot", description="Chat with Averie, your mental therapy assistant.")
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
@@ -70,7 +70,7 @@ with gr.Blocks(css="style.css") as interface:
             def handle_submit(user_input, chat_history):
                 # Process chat and evaluation
                 chat_output, updated_chat_history, eval_response = chat_fn(user_input, chat_history)
-                return updated_chat_history, gr.update(value=eval_response, scroll_to_output=True)
+                return updated_chat_history, gr.update(value=eval_response)
 
             chatbot.submit(fn=handle_submit, inputs=[chatbot.textbox, chat_history], outputs=[chatbot.chatbot, eval_output])
         
@@ -87,5 +87,14 @@ with gr.Blocks(css="style.css") as interface:
             **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
             
+def format_chat(chat_history):
+    formatted_history = ""
+    for message in chat_history:
+        if message[0]:
+            formatted_history += f'<div class="user-message">User: {message[0]}</div>'
+        if message[1]:
+            formatted_history += f'<div class="averie-message">Averie: {message[1]}</div>'
+    return formatted_history
+
 # Launch the Gradio app
 interface.launch(share=True)

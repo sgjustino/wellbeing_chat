@@ -2,7 +2,6 @@ import os
 import json
 import gradio as gr
 import requests
-import time
 
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
@@ -90,13 +89,13 @@ with gr.Blocks(css="style.css") as interface:
             def handle_submit(user_input, chat_history):
                 # Show typing indicator
                 updated_chat_history = chat_history + [f"User: {user_input}", "Averie is typing..."]
-                chat_output.update(value="\n".join(updated_chat_history))
-                
+                yield "\n".join(updated_chat_history), gr.update(value="Evaluation in progress...")
+
                 # Process chat and evaluation
                 chat_response, eval_response = chat_and_evaluate(user_input, chat_history)
-                return chat_response, eval_response
+                yield chat_response, eval_response
 
             chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
 
 # Launch the Gradio app
-interface.launch()
+interface.launch(share=True)

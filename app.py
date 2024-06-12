@@ -57,7 +57,7 @@ def chat_and_evaluate(user_input, chat_history):
     chat_history[-1] = f"Averie: {chat_output}"
 
     # Return updated history and evaluation output
-    return "\n".join(chat_history), eval_output
+    return chat_history, eval_output
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
@@ -66,7 +66,7 @@ with gr.Blocks(css="style.css") as interface:
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
-                    chat_output = gr.Textbox(label="Averie", interactive=False, placeholder="Hi there, I am Averie. How are you today?", lines=20)
+                    chat_output = gr.HTML(label="Averie", interactive=False, elem_id="chat-output")
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=2)
                     chat_submit = gr.Button("Submit", elem_id="submit-button")
                 with gr.Column(elem_id="right-pane"):
@@ -77,11 +77,11 @@ with gr.Blocks(css="style.css") as interface:
             def handle_submit(user_input, chat_history):
                 # Show typing indicator
                 updated_chat_history = chat_history + [f"User: {user_input}", "Averie is typing..."]
-                yield "\n".join(updated_chat_history), gr.update(value="Evaluation in progress...")
+                yield gr.update(value=format_chat(updated_chat_history)), gr.update(value="Evaluation in progress...")
 
                 # Process chat and evaluation
                 chat_response, eval_response = chat_and_evaluate(user_input, chat_history)
-                yield chat_response, eval_response
+                yield gr.update(value=format_chat(chat_response)), eval_response
 
             chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
             chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])  # Submit on Enter
@@ -99,5 +99,14 @@ with gr.Blocks(css="style.css") as interface:
             **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
             
+def format_chat(chat_history):
+    formatted_history = ""
+    for message in chat_history:
+        if message.startswith("User:"):
+            formatted_history += f'<div class="user-message">{message}</div>'
+        else:
+            formatted_history += f'<div class="averie-message">{message}</div>'
+    return formatted_history
+
 # Launch the Gradio app
 interface.launch(share=True)

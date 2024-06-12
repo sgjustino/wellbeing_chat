@@ -2,6 +2,7 @@ import os
 import json
 import gradio as gr
 import requests
+import time
 
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
@@ -34,34 +35,35 @@ def call_api(prompt: str):
     payload = payload_template.copy()
     payload["messages"] = [{"role": "user", "content": prompt}]
     response = requests.post(url, json=payload, headers=headers)
-    try:
-        response.raise_for_status()
-        choices = response.json()[0].get("choices", [])
-        if choices and "delta" in choices[0]:
-            return choices[0]["delta"]["content"]
-        else:
-            return "No valid response received from the API."
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
-        print(f"Response content: {response.content}")
-    except KeyError as key_err:
-        print(f"Key error: {key_err}")
-        print(f"Response JSON: {response.json()}")
-    except Exception as err:
-        print(f"Other error occurred: {err}")
-        print(f"Response content: {response.content}")
-    return "There was an error processing your request."
+    choices = response.json()[0].get("choices", [])
+    if choices and "delta" in choices[0]:
+        return choices[0]["delta"]["content"]
+    else:
+        return "No valid response received from the API."
 
-def chat_and_evaluate(user_input):
+def chat_and_evaluate(user_input, chat_history):
     # Chat model response
     chat_prompt = f"{chat_system_prompt}\nUser: {user_input}"
     chat_output = call_api(chat_prompt)
-
+    
     # Evaluation model response
     eval_prompt = f"{eval_system_prompt}\nUser: {user_input}"
     eval_output = call_api(eval_prompt)
-    
-    return chat_output, eval_output
+
+    # Update chat history
+    chat_history.append(f"User: {user_input}")
+    chat_history.append(f"Averie: {chat_output}")
+
+    # Return updated history and evaluation output
+    return "\n".join(chat_history), eval_output
+
+def typing_effect(text, update_fn):
+    words = text.split()
+    output_text = ""
+    for word in words:
+        output_text += word + " "
+        update_fn(output_text)
+        time.sleep(0.1)  # Simulate typing effect delay
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
@@ -88,8 +90,14 @@ with gr.Blocks(css="style.css") as interface:
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.Textbox(label="Cora", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
+                    chat_history = gr.State([])
 
-            chat_submit.click(fn=chat_and_evaluate, inputs=chat_input, outputs=[chat_output, eval_output])
+            def handle_submit(user_input, chat_history):
+                chat_response, eval_response = chat_and_evaluate(user_input, chat_history)
+                return chat_response, eval_response
+
+            chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
+            chat_submit.click(fn=typing_effect, inputs=chat_output, outputs=chat_output)
 
 # Launch the Gradio app
 interface.launch()

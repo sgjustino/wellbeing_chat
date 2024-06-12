@@ -68,7 +68,8 @@ with gr.Blocks(css="style.css") as interface:
                     gr.Markdown("### Chat with Averie")
                     chat_interface_component = gr.ChatInterface(
                         fn=chat_interface,
-                        submit_btn="Submit"
+                        submit_btn="Submit",
+                        fill_height=True
                     )
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")

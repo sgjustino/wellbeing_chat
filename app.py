@@ -40,23 +40,19 @@ def call_api(prompt: str):
     else:
         return "No valid response received from the API."
 
-def chat_and_evaluate(user_input, chat_history):
-    # Update chat history with user input
-    chat_history.append(f"User: {user_input}")
-
+def chat_fn(user_input, chat_history):
+    chat_history.append([user_input, None])
     # Create chat prompt with entire chat history
-    chat_prompt = chat_system_prompt + "\n" + "\n".join(chat_history)
+    full_chat_history = [f"User: {user_input}\nAverie: {bot_message}" for user_input, bot_message in chat_history if bot_message]
+    chat_prompt = chat_system_prompt + "\n" + "\n".join(full_chat_history) + f"\nUser: {user_input}\nAverie: "
     chat_output = call_api(chat_prompt)
-    
+    chat_history[-1][1] = chat_output
+
     # Create evaluation prompt with entire chat history
-    eval_prompt = eval_system_prompt + "\n" + "\n".join(chat_history)
+    eval_prompt = eval_system_prompt + "\n" + "\n".join(full_chat_history) + f"\nUser: {user_input}"
     eval_output = call_api(eval_prompt)
 
-    # Update chat history with Averie's response
-    chat_history.append(f"Averie: {chat_output}")
-
-    # Return updated history and evaluation output
-    return chat_history, eval_output
+    return chat_output, chat_history, eval_output
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
@@ -65,24 +61,18 @@ with gr.Blocks(css="style.css") as interface:
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
-                    chat_output = gr.HTML(elem_id="chat-output")
-                    chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=2)
-                    chat_submit = gr.Button("Submit", elem_id="submit-button")
+                    chatbot = gr.ChatInterface(chat_fn, title="Averie Chatbot", description="Chat with Averie, your mental therapy assistant.", show_progress="full")
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
                     chat_history = gr.State([])
 
             def handle_submit(user_input, chat_history):
-                # Show progress indicator
-                yield gr.update(value=format_chat(chat_history)), gr.update(value="Evaluation in progress...")
-
                 # Process chat and evaluation
-                chat_response, eval_response = chat_and_evaluate(user_input, chat_history)
-                yield gr.update(value=format_chat(chat_response), scroll_to_output=True), gr.update(value=eval_response, scroll_to_output=True)
+                chat_output, updated_chat_history, eval_response = chat_fn(user_input, chat_history)
+                return updated_chat_history, gr.update(value=eval_response, scroll_to_output=True)
 
-            chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output], show_progress="full")
-            chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output], show_progress="full")  # Submit on Enter
+            chatbot.submit(fn=handle_submit, inputs=[chatbot.textbox, chat_history], outputs=[chatbot.chatbot, eval_output])
         
         with gr.TabItem("About"):
             gr.Markdown("""
@@ -97,14 +87,5 @@ with gr.Blocks(css="style.css") as interface:
             **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
             
-def format_chat(chat_history):
-    formatted_history = ""
-    for message in chat_history:
-        if message.startswith("User:"):
-            formatted_history += f'<div class="user-message">{message}</div>'
-        else:
-            formatted_history += f'<div class="averie-message">{message}</div>'
-    return formatted_history
-
 # Launch the Gradio app
 interface.launch(share=True)

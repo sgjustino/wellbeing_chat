@@ -95,14 +95,5 @@ with gr.Blocks(css="style.css") as interface:
             **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
 
-def format_chat(chat_history):
-    formatted_history = ""
-    for message in chat_history:
-        if message[0]:
-            formatted_history += f'<div class="user-message">User: {message[0]}</div>'
-        if message[1]:
-            formatted_history += f'<div class="averie-message">Averie: {message[1]}</div>'
-    return formatted_history
-
 # Launch the Gradio app
 interface.launch(share=True)

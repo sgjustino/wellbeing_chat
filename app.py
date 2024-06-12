@@ -4,7 +4,6 @@ import gradio as gr
 import requests
 import time
 
-
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
 
@@ -101,21 +100,17 @@ with gr.Blocks(css="style.css") as interface:
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
-                    chat_output = gr.Textbox(label="Averie", interactive=False, placeholder="Hi there, I am Averie. How are you today?", lines=20)
+                    chat_output = gr.Chatbot(label="Averie")
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=1)
                     chat_submit = gr.Button("Submit", elem_id="submit-button", variant="primary")
                     chat_history = gr.State([])
                     
-                    def submit_on_enter(event):
-                        if event.key == "Enter":
-                            return chat_submit.click()
-                            
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.Textbox(label="Cora", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
                     
+                chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
                 chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
-                chat_input.submit(submit_on_enter)
 
 # Launch the Gradio app
 interface.launch(share=True)

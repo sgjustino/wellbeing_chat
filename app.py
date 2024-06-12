@@ -2,7 +2,6 @@ import os
 import json
 import gradio as gr
 import requests
-import time
 
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
@@ -13,7 +12,7 @@ url = "https://api.corcel.io/v1/text/cortext/chat"
 # API payload template
 payload_template = {
     "model": "gpt-4o",
-    "stream": False,
+    "stream": True,
     "top_p": 1,
     "temperature": 0.0001,
     "max_tokens": 4096,
@@ -31,46 +30,31 @@ headers = {
 chat_system_prompt = "You are a helpful and joyous mental therapy assistant named Averie. Always answer as helpfully and cheerfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature."
 eval_system_prompt = "You are a trained psychologist named Cora who is examining the interaction between a mental health assistant and someone who is troubled. Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX"
 
-def call_api(prompt: str):
+def respond(message, history, system_message):
+    messages = [{"role": "system", "content": system_message}]
+
+    for user_msg, bot_msg in history:
+        if user_msg:
+            messages.append({"role": "user", "content": user_msg})
+        if bot_msg:
+            messages.append({"role": "assistant", "content": bot_msg})
+
+    messages.append({"role": "user", "content": message})
+
+    response = ""
+    for token in call_api(messages):
+        response += token
+        yield response
+
+def call_api(messages):
     payload = payload_template.copy()
-    payload["messages"] = [{"role": "user", "content": prompt}]
-    response = requests.post(url, json=payload, headers=headers)
-    choices = response.json()[0].get("choices", [])
-    if choices and "delta" in choices[0]:
-        return choices[0]["delta"]["content"]
-    else:
-        return "No valid response received from the API."
+    payload["messages"] = messages
+    response = requests.post(url, json=payload, headers=headers, stream=True)
+    for chunk in response.iter_lines():
+        if chunk:
+            token = json.loads(chunk.decode()[6:])['choices'][0]['delta'].get('content', '')
+            yield token
 
-def chat_and_evaluate(user_input, chat_history):
-    # Update chat history with user input and typing indicator
-    chat_history.append(f"User: {user_input}")
-    yield "\n".join(chat_history), gr.update(value="Evaluation in progress...")
-
-    # Typing effect for "Averie is typing..."
-    typing_effect = "Averie is typing"
-    for i in range(3):
-        chat_history[-1] = typing_effect + "." * (i % 3 + 1)
-        yield "\n".join(chat_history), gr.update(value="Evaluation in progress...")
-        time.sleep(0.5)
-
-    # Chat model response
-    chat_prompt = f"{chat_system_prompt}\nUser: {user_input}"
-    chat_output = call_api(chat_prompt)
-
-    # Typing effect for chat response
-    chat_history[-1] = "Averie: "
-    for letter in chat_output:
-        chat_history[-1] += letter
-        yield "\n".join(chat_history), gr.update(value="Evaluation in progress...")
-        time.sleep(0.05)
-
-    # Evaluation model response
-    eval_prompt = f"{eval_system_prompt}\nUser: {user_input}"
-    eval_output = call_api(eval_prompt)
-    
-    yield "\n".join(chat_history), eval_output
-
-# Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
     with gr.Tabs():
         with gr.TabItem("About"):
@@ -89,7 +73,8 @@ with gr.Blocks(css="style.css") as interface:
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
-                    chat_output = gr.Textbox(label="Averie", interactive=False, placeholder="Hi there, I am Averie. How are you today?", lines=20)
+                    chat = gr.Chatbot(label="Averie")
+                    system_message = gr.Textbox(value=chat_system_prompt, label="System message")
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...")
                     chat_submit = gr.Button("Submit", elem_id="submit-button")
                 with gr.Column(elem_id="right-pane"):
@@ -98,9 +83,15 @@ with gr.Blocks(css="style.css") as interface:
                     chat_history = gr.State([])
 
             def handle_submit(user_input, chat_history):
-                return chat_and_evaluate(user_input, chat_history)
+                # Process chat and evaluation
+                response = respond(user_input, chat_history, system_message.value)
+                eval_prompt = f"{eval_system_prompt}\nUser: {user_input}"
+                eval_response = call_api([{"role": "system", "content": eval_system_prompt}, {"role": "user", "content": user_input}])
+                updated_history = chat_history + [(user_input, response)]
+                return updated_history, eval_response
 
-            chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
+            chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat, eval_output])
+            chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat, eval_output])
 
 # Launch the Gradio app
 interface.launch(share=True)

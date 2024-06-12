@@ -42,6 +42,11 @@ input:focus, textarea:focus {
     outline: none;
 }
 
+#chat-output {
+    height: 400px;
+    overflow-y: auto;
+}
+
 h2 {
     color: #EBCDC3;  /* Heading text color from the palette */
     font-size: 24px;
@@ -86,4 +91,23 @@ h2 {
     background-color: #EBCDC3;  /* Chat tab background color */
     padding: 20px;
     border-radius: 8px;
+}
+
+.user-message {
+    background-color: #f1f0f0;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.averie-message {
+    background-color: #d4e4ff;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.typing-indicator {
+    font-style: italic;
+    color: #888;
 }

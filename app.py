@@ -66,7 +66,7 @@ with gr.Blocks(css="style.css") as interface:
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
-                    chat_output = gr.HTML(label="Averie", interactive=False, elem_id="chat-output")
+                    chat_output = gr.HTML(label="Averie", elem_id="chat-output")
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=2)
                     chat_submit = gr.Button("Submit", elem_id="submit-button")
                 with gr.Column(elem_id="right-pane"):

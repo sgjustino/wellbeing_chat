@@ -45,7 +45,7 @@ def call_api(prompt: str):
 
 def chat_fn(user_input, history):
     # Create chat prompt with entire chat history
-    chat_history = [f"User: {user}\nAverie: {bot}" for user, bot in history]
+    chat_history = [f"User: {user}\nAverie: {bot}" for user, bot in history[-10:]]  # Only keep the last 10 messages to avoid long history
     chat_prompt = chat_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}\nAverie: "
     chat_output = call_api(chat_prompt)
     

@@ -38,9 +38,12 @@ def call_api(messages):
     response_text = ""
     for chunk in response.iter_lines():
         if chunk:
-            token = json.loads(chunk.decode()[6:])['choices'][0]['delta'].get('content', '')
-            response_text += token
-            yield token
+            try:
+                token = json.loads(chunk.decode()[6:])['choices'][0]['delta'].get('content', '')
+                response_text += token
+                yield token
+            except json.JSONDecodeError:
+                continue
 
 def respond(message, history):
     messages = [{"role": "system", "content": chat_system_prompt}]
@@ -61,8 +64,8 @@ def chat_and_evaluate(user_input, chat_history):
 
 def handle_submit(user_input, chat_history):
     # Append user input to chat history
-    chat_history.append(f"<div class='user-message'>User: {user_input}</div>")
-    chat_history.append("<div class='typing-indicator'>Averie is typing...</div>")
+    chat_history.append(("User", user_input))
+    chat_history.append(("Averie is typing", "..."))
     
     # Process chat and evaluation
     chat_output_words, eval_response = chat_and_evaluate(user_input, chat_history)
@@ -73,13 +76,13 @@ def handle_submit(user_input, chat_history):
         word = chat_output_words[i]
         averie_response += f" {word}"
         typing_indicator = "." * ((i % 3) + 1)
-        chat_history[-1] = f"<div class='typing-indicator'>Averie is typing{typing_indicator}</div>"
-        yield "\n".join(chat_history), eval_response
+        chat_history[-1] = ("Averie is typing", typing_indicator)
+        yield chat_history, eval_response
         time.sleep(0.1)  # Adjust the delay between words as needed
     
     # Final response without typing indicator
-    chat_history[-1] = f"<div class='averie-message'>{averie_response.strip()}</div>"
-    yield "\n".join(chat_history), eval_response
+    chat_history[-1] = ("Averie", averie_response.strip())
+    yield chat_history, eval_response
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
@@ -101,7 +104,7 @@ with gr.Blocks(css="style.css") as interface:
                     chat = gr.Chatbot(label="Averie")
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=1)
                     chat_submit = gr.Button("Submit", elem_id="submit-button", variant="primary")
-                    chat_history = gr.State([])
+                    chat_history = gr.State([("Averie", "Hi there, I am Averie. How are you today?")])
                     
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")

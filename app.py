@@ -1,7 +1,6 @@
 import os
 import json
 import gradio as gr
-from gradio import Block
 import requests
 import time
 
@@ -75,6 +74,7 @@ with gr.Blocks(css="style.css") as interface:
             Cora is a trained psychologist who evaluates the interactions between Averie and users. She conducts mental health analyses to identify potential issues and likely reasons. Cora provides insights based on the conversations to ensure users receive the best possible support and guidance.
             **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
+
         with gr.TabItem("Chat", elem_id="chat-tab"):
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):

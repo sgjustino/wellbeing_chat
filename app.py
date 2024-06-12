@@ -67,7 +67,7 @@ with gr.Blocks(css="style.css") as interface:
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
                     chat_output = gr.Textbox(label="Averie", interactive=False, placeholder="Hi there, I am Averie. How are you today?", lines=20)
-                    chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...")
+                    chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=2)
                     chat_submit = gr.Button("Submit", elem_id="submit-button")
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
@@ -84,6 +84,7 @@ with gr.Blocks(css="style.css") as interface:
                 yield chat_response, eval_response
 
             chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
+            chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])  # Submit on Enter
         
         with gr.TabItem("About"):
             gr.Markdown("""

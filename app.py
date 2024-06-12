@@ -42,6 +42,10 @@ def call_api(prompt: str):
         return "No valid response received from the API."
 
 def chat_and_evaluate(user_input, chat_history):
+    # Update chat history with user input and typing indicator
+    chat_history.append(f"User: {user_input}")
+    chat_history.append("Averie is typing...")
+
     # Chat model response
     chat_prompt = f"{chat_system_prompt}\nUser: {user_input}"
     chat_output = call_api(chat_prompt)
@@ -50,20 +54,11 @@ def chat_and_evaluate(user_input, chat_history):
     eval_prompt = f"{eval_system_prompt}\nUser: {user_input}"
     eval_output = call_api(eval_prompt)
 
-    # Update chat history
-    chat_history.append(f"User: {user_input}")
-    chat_history.append(f"Averie: {chat_output}")
+    # Update chat history with Averie's response
+    chat_history[-1] = f"Averie: {chat_output}"
 
     # Return updated history and evaluation output
     return "\n".join(chat_history), eval_output
-
-def typing_effect(text, update_fn):
-    words = text.split()
-    output_text = ""
-    for word in words:
-        output_text += word + " "
-        update_fn(output_text)
-        time.sleep(0.1)  # Simulate typing effect delay
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
@@ -93,11 +88,15 @@ with gr.Blocks(css="style.css") as interface:
                     chat_history = gr.State([])
 
             def handle_submit(user_input, chat_history):
+                # Show typing indicator
+                updated_chat_history = chat_history + [f"User: {user_input}", "Averie is typing..."]
+                chat_output.update(value="\n".join(updated_chat_history))
+                
+                # Process chat and evaluation
                 chat_response, eval_response = chat_and_evaluate(user_input, chat_history)
                 return chat_response, eval_response
 
             chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
-            chat_submit.click(fn=typing_effect, inputs=chat_output, outputs=chat_output)
 
 # Launch the Gradio app
 interface.launch()

@@ -11,11 +11,12 @@ url = "https://api.corcel.io/v1/text/cortext/chat"
 
 # API payload template
 payload_template = {
-    "model": "cortext-ultra",
+    "model": "gpt-4o",
     "stream": False,
     "top_p": 1,
     "temperature": 0.0001,
-    "max_tokens": 4096
+    "max_tokens": 4096,
+    "messages": []
 }
 
 # Headers with authorization
@@ -31,11 +32,11 @@ eval_system_prompt = "You are a trained psychologist named Cora who is examining
 
 def call_api(prompt: str):
     payload = payload_template.copy()
-    payload["prompt"] = prompt
+    payload["messages"] = [{"role": "user", "content": prompt}]
     response = requests.post(url, json=payload, headers=headers)
     try:
         response.raise_for_status()
-        choices = response.json().get("choices", [])
+        choices = response.json()[0].get("choices", [])
         if choices and "delta" in choices[0]:
             return choices[0]["delta"]["content"]
         else:

@@ -34,16 +34,15 @@ def call_api(prompt: str):
     payload = payload_template.copy()
     payload["messages"] = [{"role": "user", "content": prompt}]
     response = requests.post(url, json=payload, headers=headers)
-    choices = response.json()[0].get("choices", [])
-    if choices and "delta" in choices[0]:
-        return choices[0]["delta"]["content"]
+    choices = response.json().get("choices", [])
+    if choices and "message" in choices[0]:
+        return choices[0]["message"]["content"]
     else:
         return "No valid response received from the API."
 
 def chat_and_evaluate(user_input, chat_history):
-    # Update chat history with user input and typing indicator
+    # Update chat history with user input
     chat_history.append(f"User: {user_input}")
-    chat_history.append("Averie is typing...")
 
     # Create chat prompt with entire chat history
     chat_prompt = chat_system_prompt + "\n" + "\n".join(chat_history)
@@ -54,7 +53,7 @@ def chat_and_evaluate(user_input, chat_history):
     eval_output = call_api(eval_prompt)
 
     # Update chat history with Averie's response
-    chat_history[-1] = f"Averie: {chat_output}"
+    chat_history.append(f"Averie: {chat_output}")
 
     # Return updated history and evaluation output
     return chat_history, eval_output
@@ -75,16 +74,15 @@ with gr.Blocks(css="style.css") as interface:
                     chat_history = gr.State([])
 
             def handle_submit(user_input, chat_history):
-                # Show typing indicator
-                updated_chat_history = chat_history + [f"User: {user_input}", "Averie is typing..."]
-                yield gr.update(value=format_chat(updated_chat_history), scroll_to_end=True), gr.update(value="Evaluation in progress...")
+                # Show progress indicator
+                yield gr.update(value=format_chat(chat_history)), gr.update(value="Evaluation in progress...")
 
                 # Process chat and evaluation
                 chat_response, eval_response = chat_and_evaluate(user_input, chat_history)
-                yield gr.update(value=format_chat(chat_response), scroll_to_end=True), eval_response
+                yield gr.update(value=format_chat(chat_response), scroll_to_output=True), gr.update(value=eval_response, scroll_to_output=True)
 
-            chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
-            chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])  # Submit on Enter
+            chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output], show_progress="full")
+            chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output], show_progress="full")  # Submit on Enter
         
         with gr.TabItem("About"):
             gr.Markdown("""

@@ -11,13 +11,14 @@ url = "https://api.corcel.io/v1/text/cortext/chat"
 
 # API payload template
 payload_template = {
-    "model": "gpt-4o",
+    "model": "cortext-ultra",
     "stream": False,
     "top_p": 1,
     "temperature": 0.0001,
     "max_tokens": 4096
 }
 
+# Headers with authorization
 headers = {
     "accept": "application/json",
     "content-type": "application/json",
@@ -32,7 +33,23 @@ def call_api(prompt: str):
     payload = payload_template.copy()
     payload["prompt"] = prompt
     response = requests.post(url, json=payload, headers=headers)
-    return response.json()["text"]
+    try:
+        response.raise_for_status()
+        choices = response.json().get("choices", [])
+        if choices and "delta" in choices[0]:
+            return choices[0]["delta"]["content"]
+        else:
+            return "No valid response received from the API."
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+        print(f"Response content: {response.content}")
+    except KeyError as key_err:
+        print(f"Key error: {key_err}")
+        print(f"Response JSON: {response.json()}")
+    except Exception as err:
+        print(f"Other error occurred: {err}")
+        print(f"Response content: {response.content}")
+    return "There was an error processing your request."
 
 def chat_and_evaluate(user_input):
     # Chat model response
@@ -48,19 +65,6 @@ def chat_and_evaluate(user_input):
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
     with gr.Tabs():
-        with gr.TabItem("Chat", elem_id="chat-tab"):
-            with gr.Row():
-                with gr.Column(elem_id="left-pane"):
-                    gr.Markdown("### Chat with Averie")
-                    chat_output = gr.Textbox(label="Averie", interactive=False, placeholder="Hi there, I am Averie. How are you today?", lines=20)
-                    chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...")
-                    chat_submit = gr.Button("Submit", elem_id="submit-button")
-                with gr.Column(elem_id="right-pane"):
-                    gr.Markdown("### Evaluation by Cora")
-                    eval_output = gr.Textbox(label="Cora", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
-
-            chat_submit.click(fn=chat_and_evaluate, inputs=chat_input, outputs=[chat_output, eval_output])
-            
         with gr.TabItem("About"):
             gr.Markdown("""
             ## About Averie and Cora
@@ -73,7 +77,18 @@ with gr.Blocks(css="style.css") as interface:
 
             **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
-        
+        with gr.TabItem("Chat", elem_id="chat-tab"):
+            with gr.Row():
+                with gr.Column(elem_id="left-pane"):
+                    gr.Markdown("### Chat with Averie")
+                    chat_output = gr.Textbox(label="Averie", interactive=False, placeholder="Hi there, I am Averie. How are you today?", lines=20)
+                    chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...")
+                    chat_submit = gr.Button("Submit", elem_id="submit-button")
+                with gr.Column(elem_id="right-pane"):
+                    gr.Markdown("### Evaluation by Cora")
+                    eval_output = gr.Textbox(label="Cora", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
+
+            chat_submit.click(fn=chat_and_evaluate, inputs=chat_input, outputs=[chat_output, eval_output])
 
 # Launch the Gradio app
 interface.launch()

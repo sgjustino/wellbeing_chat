@@ -61,20 +61,16 @@ def chat_and_evaluate(user_input, chat_history):
     # Return updated history and evaluation output
     return chat_output_words, eval_output
 
-
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
     with gr.Tabs():
         with gr.TabItem("About"):
             gr.Markdown("""
             ## About Averie and Cora
-
             ### Averie
             Averie is your friendly mental health assistant designed to provide supportive conversations. She aims to offer helpful and cheerful responses to improve mental well-being until professional help can be sought. Averie is always ready to listen and provide comfort.
-
             ### Cora
             Cora is a trained psychologist who evaluates the interactions between Averie and users. She conducts mental health analyses to identify potential issues and likely reasons. Cora provides insights based on the conversations to ensure users receive the best possible support and guidance.
-
             **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
         with gr.TabItem("Chat", elem_id="chat-tab"):
@@ -84,6 +80,8 @@ with gr.Blocks(css="style.css") as interface:
                     chat_output = gr.Textbox(label="Averie", interactive=False, placeholder="Hi there, I am Averie. How are you today?", lines=20)
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=1)
                     chat_submit = gr.Button("Submit", elem_id="submit-button", variant="primary")
+                    chat_history = gr.State([])  # Define chat_history here
+                    
                     def submit_on_enter(event):
                         if event.key == "Enter":
                             return chat_submit.click()
@@ -93,7 +91,6 @@ with gr.Blocks(css="style.css") as interface:
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.Textbox(label="Cora", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
-                    chat_history = gr.State([])
 
             def handle_submit(user_input, chat_history):
                 # Append user input to chat history

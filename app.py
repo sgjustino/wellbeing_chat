@@ -80,17 +80,18 @@ with gr.Blocks(css="style.css") as interface:
                     chat_output = gr.Textbox(label="Averie", interactive=False, placeholder="Hi there, I am Averie. How are you today?", lines=20)
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=1)
                     chat_submit = gr.Button("Submit", elem_id="submit-button", variant="primary")
-                    chat_history = gr.State([])  # Define chat_history here
+                    chat_history = gr.State([])
                     
                     def submit_on_enter(event):
                         if event.key == "Enter":
                             return chat_submit.click()
                             
-                    chat_input.submit(chat_submit.click, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
-                    chat_input.change(submit_on_enter)
                 with gr.Column(elem_id="right-pane"):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.Textbox(label="Cora", interactive=False, placeholder="Evaluation responses will appear here...", lines=20)
+                    
+                chat_input.submit(chat_submit.click, inputs=[chat_input, chat_history], outputs=[chat_output, eval_output])
+                chat_input.change(submit_on_enter)
 
             def handle_submit(user_input, chat_history):
                 # Append user input to chat history

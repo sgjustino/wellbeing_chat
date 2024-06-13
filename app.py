@@ -39,7 +39,7 @@ def call_api(prompt: str):
     except json.JSONDecodeError:
         return "Failed to decode API response."
 
-def chat_fn(user_input, chat_history):
+def chat_fn(user_input, chat_history, eval_history):
     chat_prompt = chat_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}\nAverie: "
     chat_response = call_api(chat_prompt)
     chat_history.append(f"User: {user_input}")
@@ -79,7 +79,7 @@ with gr.Blocks(css="style.css") as interface:
                     state = gr.State([])
                     eval_state = gr.State([])
 
-                    user_input.submit(chat_fn, [user_input, state], [chatbot, state, eval_state], _js="() => { document.getElementById('chatbot').scrollTop = document.getElementById('chatbot').scrollHeight; }")
+                    user_input.submit(chat_fn, [user_input, state, eval_state], [chatbot, state, eval_state])
                     user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")

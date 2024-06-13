@@ -84,6 +84,7 @@ with gr.Blocks(css="style.css") as interface:
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
+                    eval_state.change(lambda eval_text: eval_text, inputs=[eval_state], outputs=[eval_output])
 
         with gr.TabItem("About"):
             gr.Markdown("""

@@ -34,8 +34,9 @@ def call_api(prompt: str):
     payload = payload_template.copy()
     payload["messages"] = [{"role": "user", "content": prompt}]
     response = requests.post(url, json=payload, headers=headers)
+    response.raise_for_status()  # Raise an error for unsuccessful requests
     choices = response.json()
-    if isinstance(choices, list) and len(choices) > 0:
+    if isinstance(choices, list) and len(choices) > 0 and 'choices' in choices[0]:
         return choices[0]["choices"][0]["delta"]["content"]
     else:
         return "No valid response received from the API."
@@ -57,7 +58,15 @@ def chat_fn(user_input, history):
 
 def chat_interface(user_input, chat_history):
     chat_output, updated_chat_history, eval_response = chat_fn(user_input, chat_history)
-    return updated_chat_history, eval_response
+    formatted_chat = format_chat(updated_chat_history)
+    return formatted_chat, eval_response
+
+def format_chat(chat_history):
+    formatted_history = ""
+    for user_message, averie_message in chat_history:
+        formatted_history += f'<div class="user-message">User: {user_message}</div>'
+        formatted_history += f'<div class="averie-message">Averie: {averie_message}</div>'
+    return formatted_history
 
 # Set up the Gradio interface
 with gr.Blocks(css="style.css") as interface:
@@ -66,7 +75,7 @@ with gr.Blocks(css="style.css") as interface:
             with gr.Row():
                 with gr.Column(elem_id="left-pane"):
                     gr.Markdown("### Chat with Averie")
-                    chatbot = gr.Chatbot(elem_id="chat-output")
+                    chatbot = gr.HTML(elem_id="chat-output")
                     chat_input = gr.Textbox(label="Your Message", placeholder="Type your message here...", lines=2)
                     chat_submit = gr.Button("Submit", elem_id="submit-button")
                 with gr.Column(elem_id="right-pane"):
@@ -76,8 +85,8 @@ with gr.Blocks(css="style.css") as interface:
 
             def handle_submit(user_input, chat_history):
                 # Process chat and evaluation
-                updated_chat_history, eval_response = chat_interface(user_input, chat_history)
-                return updated_chat_history, eval_response
+                formatted_chat, eval_response = chat_interface(user_input, chat_history)
+                return formatted_chat, eval_response
 
             chat_submit.click(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chatbot, eval_output])
             chat_input.submit(fn=handle_submit, inputs=[chat_input, chat_history], outputs=[chatbot, eval_output])
@@ -94,15 +103,6 @@ with gr.Blocks(css="style.css") as interface:
 
             **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
-
-def format_chat(chat_history):
-    formatted_history = ""
-    for message in chat_history:
-        if message[0]:
-            formatted_history += f'<div class="user-message">User: {message[0]}</div>'
-        if message[1]:
-            formatted_history += f'<div class="averie-message">Averie: {message[1]}</div>'
-    return formatted_history
 
 # Launch the Gradio app
 interface.launch(share=True)

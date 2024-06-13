@@ -9,16 +9,6 @@ api_code = os.getenv("api_code")
 # API endpoint
 url = "https://api.corcel.io/v1/text/cortext/chat"
 
-# API payload template
-payload_template = {
-    "model": "gpt-4o",
-    "stream": False,
-    "top_p": 1,
-    "temperature": 0.0001,
-    "max_tokens": 4096,
-    "messages": []
-}
-
 # Headers with authorization
 headers = {
     "accept": "application/json",
@@ -31,53 +21,69 @@ chat_system_prompt = "You are a helpful and joyous mental therapy assistant name
 eval_system_prompt = "You are a trained psychologist named Cora who is examining the interaction between a mental health assistant and someone who is troubled. Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX"
 
 def call_api(prompt: str):
-    payload = payload_template.copy()
-    payload["messages"] = [{"role": "user", "content": prompt}]
+    payload = {
+        "model": "gpt-4o",
+        "stream": False,
+        "top_p": 1,
+        "temperature": 0.0001,
+        "max_tokens": 4096,
+        "messages": [{"role": "user", "content": prompt}]
+    }
     response = requests.post(url, json=payload, headers=headers)
     try:
-        choices = response.json()
-        if isinstance(choices, list) and len(choices) > 0:
-            return choices[0]["choices"][0]["delta"]["content"]
+        response_json = response.json()
+        if response_json and isinstance(response_json, list):
+            return response_json[0]["choices"][0]["delta"]["content"]
         else:
             return "No valid response received from the API."
     except json.JSONDecodeError:
         return "Failed to decode API response."
 
-def chat_fn(user_input, history):
-    # Create chat prompt with entire chat history
-    chat_history = [f"User: {user}\nAverie: {bot}" for user, bot in history[-10:]]  # Only keep the last 10 messages to avoid long history
+def chat_fn(user_input, chat_history):
     chat_prompt = chat_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}\nAverie: "
-    chat_output = call_api(chat_prompt)
-    
-    # Update history
-    history.append([user_input, chat_output])
+    chat_response = call_api(chat_prompt)
+    chat_history.append(f"User: {user_input}")
+    chat_history.append(f"Averie: {chat_response}")
 
-    # Create evaluation prompt with entire chat history
     eval_prompt = eval_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}"
-    eval_output = call_api(eval_prompt)
+    eval_response = call_api(eval_prompt)
 
-    return chat_output, history, eval_output
+    return [(parse_codeblock(chat_history[i]), parse_codeblock(chat_history[i + 1])) for i in range(0, len(chat_history), 2)], chat_history, eval_response
 
-def chat_interface(user_input, chat_history):
-    chat_output, updated_chat_history, eval_response = chat_fn(user_input, chat_history)
-    return updated_chat_history, eval_response
+def reset_textbox():
+    return gr.update(value='')
 
-# Set up the Gradio interface
+def parse_codeblock(text):
+    lines = text.split("\n")
+    for i, line in enumerate(lines):
+        if "```" in line:
+            if line != "```":
+                lines[i] = f'<pre><code class="{lines[i][3:]}">'
+            else:
+                lines[i] = '</code></pre>'
+        else:
+            lines[i] = "<br/>" + line.replace("<", "&lt;").replace(">", "&gt;")
+    return "".join(lines)
+
+title = "Chat with Averie and Evaluation by Cora"
+description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
+
 with gr.Blocks(css="style.css") as interface:
     with gr.Tabs():
         with gr.TabItem("Chat", elem_id="chat-tab"):
             with gr.Row():
                 with gr.Column(elem_id="left-pane", scale=1):
                     gr.Markdown("### Chat with Averie")
-                    chat_interface_component = gr.ChatInterface(
-                        fn=chat_interface,
-                        submit_btn="Submit",
-                        fill_height=True
-                    )
+                    chatbot = gr.Chatbot(elem_id='chatbot')
+                    user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
+                    state = gr.State([])
+                    eval_state = gr.State([])
+
+                    user_input.submit(chat_fn, [user_input, state], [chatbot, state, eval_state], _js="() => { document.getElementById('chatbot').scrollTop = document.getElementById('chatbot').scrollHeight; }")
+                    user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
-                    chat_history = gr.State([])
 
         with gr.TabItem("About"):
             gr.Markdown("""

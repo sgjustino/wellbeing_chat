@@ -7,7 +7,7 @@ body {
     display: flex;
     height: 100vh;
     width: 100vw;
-    background-color: #EFC4BB;
+    background-color: #EBC5BB;
 }
 #left-pane {
     background-color: #ECD9D2;
@@ -91,12 +91,12 @@ h2 {
 .gradio-tabitem:first-child .gradio-container {
     background-color: #F6EBE7;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 20pt; /* Increased border radius for the tabs */
 }
 .gradio-tabitem:nth-child(2) .gradio-container {
     background-color: #F6EBE7;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 20pt; /* Increased border radius for the tabs */
 }
 .user-message {
     background-color: #f1f0f0;

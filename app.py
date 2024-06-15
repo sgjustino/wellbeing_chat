@@ -2,7 +2,6 @@ import os
 import json
 import gradio as gr
 import requests
-from gradio import javascript
 
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
@@ -66,9 +65,6 @@ def parse_codeblock(text):
             lines[i] = "<br/>" + line.replace("<", "&lt;").replace(">", "&gt;")
     return "".join(lines)
 
-title = "Chat with Averie and Evaluation by Cora"
-description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
-
 light_mode_js = """
 window.addEventListener('load', function () {
   gradioURL = window.location.href;
@@ -78,7 +74,11 @@ window.addEventListener('load', function () {
 });
 """
 
+title = "Chat with Averie and Evaluation by Cora"
+description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
+
 with gr.Blocks(css="style.css") as interface:
+    interface.javascript(light_mode_js)
     with gr.Tabs():
         with gr.TabItem("Chat", elem_id="chat-tab"):
             with gr.Row():
@@ -108,8 +108,6 @@ with gr.Blocks(css="style.css") as interface:
 
             **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
-
-    javascript(light_mode_js)
 
 # Launch the Gradio app
 interface.launch(share=False)

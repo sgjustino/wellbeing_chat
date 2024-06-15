@@ -66,19 +66,20 @@ def parse_codeblock(text):
     return "".join(lines)
 
 light_mode_js = """
-window.addEventListener('load', function () {
-  gradioURL = window.location.href;
-  if (!gradioURL.endsWith('?__theme=light')) {
-    window.location.replace(gradioURL + '?__theme=light');
-  }
-});
+function refresh() {
+    const url = new URL(window.location);
+
+    if (url.searchParams.get('__theme') !== 'light') {
+        url.searchParams.set('__theme', 'light');
+        window.location.href = url.href;
+    }
+}
 """
 
 title = "Chat with Averie and Evaluation by Cora"
 description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
 
-with gr.Blocks(css="style.css") as interface:
-    interface.javascript(light_mode_js)
+with gr.Blocks(css="style.css", js=light_mode_js) as interface:
     with gr.Tabs():
         with gr.TabItem("Chat", elem_id="chat-tab"):
             with gr.Row():

@@ -24,18 +24,6 @@ body {
     flex-direction: column;
     height: 100%;
 }
-input, textarea {
-    border-radius: 8px;
-    border: 1px solid #EBCDC3;
-    padding: 10px;
-    font-size: 16px;
-    background-color: #F6EBE7;
-    color: #142B43;
-}
-input:focus, textarea:focus {
-    border-color: #F7F4F1;
-    outline: none;
-}
 #chat-output {
     height: 400px;
     overflow-y: auto;

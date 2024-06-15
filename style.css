@@ -91,26 +91,12 @@ h2 {
 .gradio-tabitem:first-child .gradio-container {
     background-color: #F6EBE7;
     padding: 20px;
-    border-radius: 20pt; /* Increased border radius for the tabs */
+    border-radius: 20pt; /* Increased border radius for the container within the tabs */
 }
 .gradio-tabitem:nth-child(2) .gradio-container {
     background-color: #F6EBE7;
     padding: 20px;
-    border-radius: 20pt; /* Increased border radius for the tabs */
-}
-.user-message {
-    background-color: #f1f0f0;
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #d4d4d4;
-}
-.averie-message {
-    background-color: #d4e4ff;
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #a4c4ff;
+    border-radius: 20pt; /* Increased border radius for the container within the tabs */
 }
 .typing-indicator {
     font-style: italic;

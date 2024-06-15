@@ -98,7 +98,3 @@ h2 {
     padding: 20px;
     border-radius: 20pt; /* Increased border radius for the container within the tabs */
 }
-.typing-indicator {
-    font-style: italic;
-    color: #888;
-}

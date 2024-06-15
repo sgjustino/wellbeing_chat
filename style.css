@@ -1,76 +1,70 @@
 body {
-    background-color: #D29A89;  /* Background color from the palette */
+    background-color: #D29A89;
     font-family: 'Comic Sans MS', cursive, sans-serif;
-    color: #142B43;  /* Text color */
+    color: #142B43;
 }
-
 .gradio-container {
     display: flex;
     height: 100vh;
     width: 100vw;
-    background-color: #EBC5BB;  /* Container background color from the palette */
+    background-color: #EBC5BB;
 }
-
 #left-pane {
-    background-color: #ECD9D2;  /* Left pane background color from the palette */
+    background-color: #ECD9D2;
     padding: 20px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
 }
-
 #right-pane {
-    background-color: #ECD9D2;  /* Right pane background color from the palette */
+    background-color: #ECD9D2;
     padding: 20px;
     display: flex;
     flex-direction: column;
     height: 100%;
 }
-
 input, textarea {
     border-radius: 8px;
-    border: 1px solid #EBCDC3;  /* Border color from the palette */
+    border: 1px solid #EBCDC3;
     padding: 10px;
     font-size: 16px;
-    background-color: #F6EBE7;  /* Input background color from the palette */
-    color: #142B43;  /* Input text color */
+    background-color: #F6EBE7;
+    color: #142B43;
 }
-
 input:focus, textarea:focus {
-    border-color: #F7F4F1;  /* Focus border color from the palette */
+    border-color: #F7F4F1;
     outline: none;
 }
-
 #chat-output {
     height: 400px;
     overflow-y: auto;
     padding: 10px;
-    background-color: #F6EBE7; /* Chat output background color */
+    background-color: #F6EBE7;
     border-radius: 10px;
-    border: 1px solid #EBCDC3; /* Chat output border color */
-    white-space: pre-wrap; /* Ensure text wraps properly */
+    border: 1px solid #EBCDC3;
+    white-space: pre-wrap;
+    font-family: 'Helvetica Neue', sans-serif;
 }
-
 #eval-output {
     height: 400px;
     overflow-y: auto;
     padding: 10px;
-    background-color: #F6EBE7; /* Eval output background color */
+    background-color: #F6EBE7;
     border-radius: 10px;
-    border: 1px solid #EBCDC3; /* Eval output border color */
-    white-space: pre-wrap; /* Ensure text wraps properly */
+    border: 1px solid #EBCDC3;
+    white-space: pre-wrap;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
 }
-
 h2 {
-    color: #EBCDC3;  /* Heading text color from the palette */
+    color: #142B43;
     font-size: 24px;
     font-weight: bold;
     text-align: center;
 }
-
 #submit-button {
-    background-color: #ECD9D2;  /* Submit button color */
+    background-color: #ECD9D2;
     border: none;
     color: #142B43;
     padding: 10px 20px;
@@ -82,33 +76,27 @@ h2 {
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
-
 #submit-button:hover {
-    background-color: #EBCDC3;  /* Submit button hover color */
+    background-color: #EBCDC3;
 }
-
 #component-2, #component-4 {
     width: 100%;
 }
-
 #component-6 {
     width: 100%;
     height: 400px;
 }
-
 /* Specific colors for each tab */
 .gradio-tabitem:first-child .gradio-container {
-    background-color: #EBCDC3;  /* About tab background color */
+    background-color: #F6EBE7;
     padding: 20px;
     border-radius: 8px;
 }
-
 .gradio-tabitem:nth-child(2) .gradio-container {
-    background-color: #EBCDC3;  /* Chat tab background color */
+    background-color: #F6EBE7;
     padding: 20px;
     border-radius: 8px;
 }
-
 .user-message {
     background-color: #f1f0f0;
     padding: 10px;
@@ -116,7 +104,6 @@ h2 {
     margin-bottom: 10px;
     border: 1px solid #d4d4d4;
 }
-
 .averie-message {
     background-color: #d4e4ff;
     padding: 10px;
@@ -124,7 +111,6 @@ h2 {
     margin-bottom: 10px;
     border: 1px solid #a4c4ff;
 }
-
 .typing-indicator {
     font-style: italic;
     color: #888;

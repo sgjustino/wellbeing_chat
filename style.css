@@ -8,6 +8,7 @@ body {
     height: 100vh;
     width: 100vw;
     background-color: #EBC5BB;
+    border-radius: 20pt;
 }
 #left-pane {
     background-color: #ECD9D2;

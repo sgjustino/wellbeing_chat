@@ -7,7 +7,7 @@ import requests
 api_code = os.getenv("api_code")
 
 # API endpoint
-url = "https://api.corcel.io/v1/text/cortext/chat"
+url = "https://api.corcel.io/v1/text/vision/chat"
 
 # Headers with authorization
 headers = {
@@ -22,11 +22,9 @@ eval_system_prompt = "You are a trained psychologist named Cora who is examining
 
 def call_api(prompt: str):
     payload = {
-        "model": "gpt-4o",
-        "stream": False,
-        "top_p": 1,
-        "temperature": 0.0001,
-        "max_tokens": 4096,
+        "model": "llama-3",
+        "temperature": 0.1,
+        "max_tokens": 500,
         "messages": [{"role": "user", "content": prompt}]
     }
     response = requests.post(url, json=payload, headers=headers)

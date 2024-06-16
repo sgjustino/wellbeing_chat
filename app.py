@@ -7,7 +7,7 @@ import requests
 api_code = os.getenv("api_code")
 
 # API endpoint
-url = "https://api.corcel.io/v1/text/cortext/chat"
+url = "https://api.corcel.io/v1/text/vision/chat"
 
 # Headers with authorization
 headers = {
@@ -31,18 +31,16 @@ Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX
 
 def call_api(prompt: str):
     payload = {
-        "model": "gpt-4o",
-        "stream": False,
-        "top_p": 1,
-        "temperature": 0.0001,
-        "max_tokens": 1000,
+        "model": "llama-3",
+        "temperature": 0.1,
+        "max_tokens": 500,
         "messages": [{"role": "user", "content": prompt}]
     }
     response = requests.post(url, json=payload, headers=headers)
     try:
         response_json = response.json()
-        if response_json and isinstance(response_json, list):
-            return response_json[0]["choices"][0]["delta"]["content"]
+        if response_json and "choices" in response_json:
+            return response_json["choices"][0]["message"]["content"]
         else:
             return "No valid response received from the API."
     except json.JSONDecodeError:
@@ -116,7 +114,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
             ### Cora
             Cora is a trained psychologist who evaluates the interactions between Averie and users. She conducts mental health analyses to identify potential issues and likely reasons. Cora provides insights based on the conversations to ensure users receive the best possible support and guidance.
 
-            ##Disclaimer 
+            ## Disclaimer 
             This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
 

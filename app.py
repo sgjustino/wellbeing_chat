@@ -7,7 +7,7 @@ import requests
 api_code = os.getenv("api_code")
 
 # API endpoint
-url = "https://api.corcel.io/v1/text/vision/chat"
+url = "https://api.corcel.io/v1/text/cortext/chat"
 
 # Headers with authorization
 headers = {
@@ -17,14 +17,25 @@ headers = {
 }
 
 # System prompts
-chat_system_prompt = "You are a helpful and joyous mental therapy assistant named Averie. Always answer as helpfully and cheerfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature."
-eval_system_prompt = "You are a trained psychologist named Cora who is examining the interaction between a mental health assistant and someone who is troubled. Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX"
+chat_system_prompt = """
+You are a helpful and joyous mental therapy assistant named Averie. Always answer as helpfully and cheerfully as possible, while being safe. 
+Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses 
+are socially unbiased and positive in nature. Chat as you would in a natural, friendly conversation. Avoid using bullet points or overly long 
+responses. Keep your replies concise and engaging, similar to how you would speak with a friend.
+"""
+eval_system_prompt = """
+You are a trained psychologist named Cora who is examining the interaction between a mental health assistant and someone who is troubled. 
+Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. 
+Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX
+"""
 
 def call_api(prompt: str):
     payload = {
-        "model": "llama-3",
-        "temperature": 0.1,
-        "max_tokens": 500,
+        "model": "gpt-4o",
+        "stream": False,
+        "top_p": 1,
+        "temperature": 0.0001,
+        "max_tokens": 1000,
         "messages": [{"role": "user", "content": prompt}]
     }
     response = requests.post(url, json=payload, headers=headers)
@@ -105,7 +116,8 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
             ### Cora
             Cora is a trained psychologist who evaluates the interactions between Averie and users. She conducts mental health analyses to identify potential issues and likely reasons. Cora provides insights based on the conversations to ensure users receive the best possible support and guidance.
 
-            **Disclaimer:** This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
+            ##Disclaimer 
+            This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
 
 # Launch the Gradio app

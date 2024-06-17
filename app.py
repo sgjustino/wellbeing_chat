@@ -63,29 +63,17 @@ def chat_fn(user_input, chat_history, eval_history):
 
     for response in response_generator:
         chat_history[-1] = (user_input, response)  # Update the last entry with Averie's response
-        yield chat_history, eval_history
+        yield chat_history, chat_history, eval_history  # Update all states with new history
 
     eval_prompt = eval_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history])
     eval_response = call_api(eval_prompt)
 
     for eval_text in eval_response:
         eval_history.append(eval_text)
-        yield chat_history, eval_history
+        yield chat_history, chat_history, eval_history  # Update all states with new history
 
 def reset_textbox():
     return gr.update(value='')
-
-def parse_codeblock(text):
-    lines = text.split("\n")
-    for i, line in enumerate(lines):
-        if "```" in line:
-            if line != "```":
-                lines[i] = f'<pre><code class="{lines[i][3:]}">'
-            else:
-                lines[i] = '</code></pre>'
-        else:
-            lines[i] = "<br/>" + line.replace("<", "&lt;").replace(">", "&gt;")
-    return "".join(lines)
 
 light_mode_js = """
 function refresh() {
@@ -112,7 +100,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     state = gr.State([])
                     eval_state = gr.State([])
 
-                    user_input.submit(chat_fn, [user_input, state, eval_state], [chatbot, state, eval_state])
+                    user_input.submit(chat_fn, [user_input, state, eval_state], [chatbot, state, eval_state], queue=True)
                     user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")

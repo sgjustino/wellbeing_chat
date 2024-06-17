@@ -107,8 +107,9 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     state = gr.State([])
                     eval_state = gr.State([])
 
+                    # Separate the steps to ensure evaluation only happens after full response is generated
                     user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True).then(
-                        update_eval, [state, eval_state], [eval_state]
+                        update_eval, [state, eval_state], [eval_state], queue=True
                     )
                     user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):

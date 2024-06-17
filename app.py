@@ -62,9 +62,11 @@ def chat_fn(user_input, chat_history):
 
     for response in response_generator:
         chat_history[-1] = (user_input, response)  # Update the last entry with Averie's response
+        print("Updated chat history:", chat_history)  # Debug print
         yield chat_history, chat_history
 
 def eval_fn(chat_history):
+    print("Evaluating chat history:", chat_history)  # Debug print
     eval_prompt = eval_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history])
     eval_response_generator = call_api(eval_prompt)
 

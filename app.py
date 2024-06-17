@@ -65,13 +65,13 @@ def chat_fn(user_input, chat_history, eval_history):
         yield chat_history, chat_history, eval_history  # Update all states with new history
 
     eval_prompt = eval_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history])
-    eval_response = call_api(eval_prompt)
+    eval_response_generator = call_api(eval_prompt)
 
     eval_text = ""
-    for text in eval_response:
+    for text in eval_response_generator:
         eval_text += text
-    eval_history.append(eval_text)
-    yield chat_history, chat_history, eval_history
+        eval_history.append(eval_text)
+        yield chat_history, chat_history, eval_history  # Update all states with new history
 
 def reset_textbox():
     return gr.update(value='')
@@ -117,8 +117,8 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
-                    eval_output = gr.HTML(elem_id="eval-output")
-                    eval_state.change(lambda eval_text: eval_text, inputs=[eval_state], outputs=[eval_output])
+                    eval_output = gr.Markdown(elem_id="eval-output")
+                    eval_state.change(lambda eval_text: eval_text[-1] if eval_text else "", inputs=[eval_state], outputs=[eval_output])
 
         with gr.TabItem("About"):
             gr.Markdown("""

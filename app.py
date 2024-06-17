@@ -79,9 +79,6 @@ def update_eval(chat_history, eval_history):
     eval_history.append(eval_text)
     return eval_history
 
-def reset_textbox():
-    return gr.update(value='')
-
 light_mode_js = """
 function refresh() {
     const url = new URL(window.location);
@@ -104,19 +101,20 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     gr.Markdown("### Chat with Averie")
                     chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
                     user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
-                    submit_button = gr.Button("Submit")
                     state = gr.State([])
                     eval_state = gr.State([])
-
-                    # Separate the steps to ensure evaluation only happens after full response is generated
-                    submit_button.click(chat_fn, [user_input, state], [chatbot, state], queue=True).then(
-                        update_eval, [state, eval_state], [eval_state], queue=True
+                    
+                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True).then(
+                        lambda x: gr.update(value=''), [], [user_input]
                     )
-                    submit_button.click(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
-                    eval_state.change(lambda eval_history: "".join(eval_history) if eval_history else "", inputs=[eval_state], outputs=[eval_output])
+                    eval_button = gr.Button("Evaluate Chat")
+                    
+                    eval_button.click(update_eval, [state, eval_state], [eval_state]).then(
+                        lambda eval_history: "".join(eval_history) if eval_history else "", inputs=[eval_state], outputs=[eval_output]
+                    )
 
         with gr.TabItem("About"):
             gr.Markdown("""

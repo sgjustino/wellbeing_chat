@@ -72,6 +72,7 @@ def eval_fn(chat_history):
     for text in eval_response_generator:
         eval_text += text
 
+    print(f"Eval text: {eval_text}")  # Debug print statement
     return eval_text
 
 def reset_textbox():

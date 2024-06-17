@@ -75,6 +75,12 @@ def eval_fn(chat_history):
     print(f"Eval text: {eval_text}")  # Debug print statement
     return eval_text
 
+def trigger_eval_fn(chat_history, eval_history):
+    eval_text = eval_fn(chat_history)
+    eval_history.append(eval_text)
+    print(f"Updated eval history: {eval_history}")  # Debug print statement
+    return eval_history
+
 def reset_textbox():
     return gr.update(value='')
 
@@ -101,13 +107,15 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
                     user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
                     state = gr.State([])
+                    eval_state = gr.State([])
 
                     user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True)
+                    user_input.submit(trigger_eval_fn, [state, eval_state], [eval_state], queue=True)
                     user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
-                    state.change(lambda chat_history: eval_fn(chat_history), inputs=[state], outputs=[eval_output])
+                    eval_state.change(lambda eval_history: "".join(eval_history) if eval_history else "", inputs=[eval_state], outputs=[eval_output])
 
         with gr.TabItem("About"):
             gr.Markdown("""

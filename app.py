@@ -2,7 +2,6 @@ import os
 import json
 import gradio as gr
 import requests
-import time
 
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
@@ -68,12 +67,26 @@ def chat_fn(user_input, chat_history, eval_history):
     eval_prompt = eval_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history])
     eval_response = call_api(eval_prompt)
 
-    for eval_text in eval_response:
-        eval_history.append(eval_text)
-        yield chat_history, chat_history, eval_history  # Update all states with new history
+    eval_text = ""
+    for text in eval_response:
+        eval_text += text
+    eval_history.append(eval_text)
+    yield chat_history, chat_history, eval_history
 
 def reset_textbox():
     return gr.update(value='')
+
+def parse_codeblock(text):
+    lines = text.split("\n")
+    for i, line in enumerate(lines):
+        if "```" in line:
+            if line != "```":
+                lines[i] = f'<pre><code class="{lines[i][3:]}">'
+            else:
+                lines[i] = '</code></pre>'
+        else:
+            lines[i] = "<br/>" + line.replace("<", "&lt;").replace(">", "&gt;")
+    return "".join(lines)
 
 light_mode_js = """
 function refresh() {

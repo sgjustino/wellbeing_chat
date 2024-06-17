@@ -104,14 +104,15 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     gr.Markdown("### Chat with Averie")
                     chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
                     user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
+                    submit_button = gr.Button("Submit")
                     state = gr.State([])
                     eval_state = gr.State([])
 
                     # Separate the steps to ensure evaluation only happens after full response is generated
-                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True).then(
+                    submit_button.click(chat_fn, [user_input, state], [chatbot, state], queue=True).then(
                         update_eval, [state, eval_state], [eval_state], queue=True
                     )
-                    user_input.submit(reset_textbox, [], [user_input])
+                    submit_button.click(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")

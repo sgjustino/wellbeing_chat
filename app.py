@@ -43,6 +43,8 @@ def call_api(prompt: str):
         if line:
             line_decoded = line.decode('utf-8').strip()
             print(f"Decoded line: {line_decoded}")  # Print the decoded line for debugging
+            if line_decoded.startswith("data: "):
+                line_decoded = line_decoded[len("data: "):]  # Remove the "data: " prefix
             if line_decoded:  # Ensure the line is not empty
                 try:
                     line_json = json.loads(line_decoded)
@@ -87,7 +89,7 @@ function refresh() {
 
     if (url.searchParams.get('__theme') !== 'light') {
         url.searchParams.set('__theme', 'light');
-        window.location.href = url.href;
+        window.location.href = url.href.
     }
 }
 """

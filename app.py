@@ -2,6 +2,7 @@ import os
 import json
 import gradio as gr
 import requests
+import time
 
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
@@ -23,6 +24,7 @@ Your answers should not include any harmful, unethical, racist, sexist, toxic, d
 are socially unbiased and positive in nature. Chat as you would in a natural, friendly conversation. Avoid using bullet points or overly long 
 responses. Keep your replies concise and engaging, similar to how you would speak with a friend.
 """
+
 eval_system_prompt = """
 You are a trained psychologist named Cora who is examining the interaction between a mental health assistant and someone who is troubled. 
 Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. 
@@ -39,95 +41,46 @@ def call_api(prompt: str):
     response = requests.post(url, json=payload, headers=headers, stream=True)
     response_text = ""
     for line in response.iter_lines():
-        print(f"Raw line: {line}")  # Print the raw line for debugging
         if line:
             line_decoded = line.decode('utf-8').strip()
-            print(f"Decoded line: {line_decoded}")  # Print the decoded line for debugging
             if line_decoded.startswith("data: "):
                 line_decoded = line_decoded[len("data: "):]  # Remove the "data: " prefix
-            if line_decoded:  # Ensure the line is not empty
+            if line_decoded:
                 try:
                     line_json = json.loads(line_decoded)
-                    print(f"JSON line: {line_json}")  # Print the JSON line for debugging
                     if "choices" in line_json and line_json["choices"]:
                         delta_content = line_json["choices"][0]["delta"].get("content", "")
                         response_text += delta_content
-                except json.JSONDecodeError as e:
-                    print(f"JSONDecodeError: {e}")  # Print the error for debugging
-    print(f"Final response text: {response_text}")  # Print the final response text for debugging
-    return response_text if response_text else "No valid response received from the API."
+                        yield response_text
+                except json.JSONDecodeError:
+                    pass
 
-def chat_fn(user_input, chat_history, eval_history):
-    chat_prompt = chat_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}\nAverie: "
-    chat_response = call_api(chat_prompt)
-    chat_history.append(f"User: {user_input}")
-    chat_history.append(f"Averie: {chat_response}")
+def chat_fn(message, history):
+    chat_prompt = chat_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in history]) + f"\nUser: {message}\nAverie: "
+    response_generator = call_api(chat_prompt)
+    for response in response_generator:
+        history.append((message, response))
+        yield history, ""
 
-    eval_prompt = eval_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}"
+def eval_fn(message, history):
+    eval_prompt = eval_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in history]) + f"\nUser: {message}"
     eval_response = call_api(eval_prompt)
+    eval_text = ""
+    for response in eval_response:
+        eval_text += response
+    return eval_text
 
-    return [(parse_codeblock(chat_history[i]), parse_codeblock(chat_history[i + 1])) for i in range(0, len(chat_history), 2)], chat_history, eval_response
+demo = gr.ChatInterface(
+    chat_fn,
+    chatbot=gr.Chatbot(placeholder="Hi, I am Averie. How are you today?"),
+    title="Chat with Averie and Evaluation by Cora",
+    description="A friendly mental health assistant chatbot and its evaluation by a trained psychologist.",
+    theme="soft",
+    examples=["Hello", "I am feeling down today", "Can you help me with my anxiety?"],
+    additional_inputs=[
+        gr.Textbox(placeholder="Type your message here...", container=False),
+        gr.Button("Submit", variant="primary"),
+    ]
+)
 
-def reset_textbox():
-    return gr.update(value='')
-
-def parse_codeblock(text):
-    lines = text.split("\n")
-    for i, line in enumerate(lines):
-        if "```" in line:
-            if line != "```":
-                lines[i] = f'<pre><code class="{lines[i][3:]}">'
-            else:
-                lines[i] = '</code></pre>'
-        else:
-            lines[i] = "<br/>" + line.replace("<", "&lt;").replace(">", "&gt;")
-    return "".join(lines)
-
-light_mode_js = """
-function refresh() {
-    const url = new URL(window.location);
-
-    if (url.searchParams.get('__theme') !== 'light') {
-        url.searchParams.set('__theme', 'light');
-        window.location.href = url.href;
-    }
-}
-"""
-
-title = "Chat with Averie and Evaluation by Cora"
-description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
-
-with gr.Blocks(css="style.css", js=light_mode_js) as interface:
-    with gr.Tabs():
-        with gr.TabItem("Chat", elem_id="chat-tab"):
-            with gr.Row():
-                with gr.Column(elem_id="left-pane", scale=1):
-                    gr.Markdown("### Chat with Averie")
-                    chatbot = gr.Chatbot(elem_id='chatbot')
-                    user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
-                    state = gr.State([])
-                    eval_state = gr.State([])
-
-                    user_input.submit(chat_fn, [user_input, state, eval_state], [chatbot, state, eval_state])
-                    user_input.submit(reset_textbox, [], [user_input])
-                with gr.Column(elem_id="right-pane", scale=1):
-                    gr.Markdown("### Evaluation by Cora")
-                    eval_output = gr.HTML(elem_id="eval-output")
-                    eval_state.change(lambda eval_text: eval_text, inputs=[eval_state], outputs=[eval_output])
-
-        with gr.TabItem("About"):
-            gr.Markdown("""
-            ## About Averie and Cora
-
-            ### Averie
-            Averie is your friendly mental health assistant designed to provide supportive conversations. She aims to offer helpful and cheerful responses to improve mental well-being until professional help can be sought. Averie is always ready to listen and provide comfort.
-
-            ### Cora
-            Cora is a trained psychologist who evaluates the interactions between Averie and users. She conducts mental health analyses to identify potential issues and likely reasons. Cora provides insights based on the conversations to ensure users receive the best possible support and guidance.
-
-            ## Disclaimer 
-            This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
-            """)
-
-# Launch the Gradio app
-interface.launch(share=False)
+demo.launch()

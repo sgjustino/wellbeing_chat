@@ -75,7 +75,7 @@ def eval_fn(chat_history):
     print(f"Eval text: {eval_text}")  # Debug print statement
     return eval_text
 
-def trigger_eval_fn(chat_history, eval_history):
+def update_eval(chat_history, eval_history):
     eval_text = eval_fn(chat_history)
     eval_history.append(eval_text)
     print(f"Updated eval history: {eval_history}")  # Debug print statement
@@ -109,8 +109,9 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     state = gr.State([])
                     eval_state = gr.State([])
 
-                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True)
-                    user_input.submit(trigger_eval_fn, [state, eval_state], [eval_state], queue=True)
+                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True).then(
+                        update_eval, [state, eval_state], [eval_state]
+                    )
                     user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")

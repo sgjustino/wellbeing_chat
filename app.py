@@ -76,10 +76,8 @@ def eval_fn(chat_history):
 
     return eval_text
 
-def update_eval(chat_history, eval_history):
-    eval_text = eval_fn(chat_history)
-    eval_history.append(eval_text)
-    return eval_history
+def reset_textbox():
+    return gr.update(value='')
 
 light_mode_js = """
 function refresh() {
@@ -104,19 +102,16 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
                     user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
                     state = gr.State([])
-                    eval_state = gr.State([])
-                    
+
                     user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True).then(
-                        lambda x: gr.update(value=''), [], [user_input]
+                        reset_textbox, [], [user_input]
                     )
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
                     eval_button = gr.Button("Evaluate Chat")
                     
-                    eval_button.click(update_eval, [state, eval_state], [eval_state]).then(
-                        lambda eval_history: "".join(eval_history) if eval_history else "", inputs=[eval_state], outputs=[eval_output]
-                    )
+                    eval_button.click(lambda chat_history: eval_fn(chat_history), inputs=[state], outputs=[eval_output])
 
         with gr.TabItem("About"):
             gr.Markdown("""

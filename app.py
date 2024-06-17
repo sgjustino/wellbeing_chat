@@ -89,7 +89,7 @@ function refresh() {
 
     if (url.searchParams.get('__theme') !== 'light') {
         url.searchParams.set('__theme', 'light');
-        window.location.href = url.href.
+        window.location.href = url.href;
     }
 }
 """

@@ -2,7 +2,6 @@ import os
 import json
 import gradio as gr
 import requests
-import time
 
 # Retrieve the API code from the environment variable
 api_code = os.getenv("api_code")
@@ -30,7 +29,7 @@ Always look at their answers and conduct a mental health analysis to identify po
 Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX
 """
 
-def call_api_streaming(prompt: str):
+def call_api(prompt: str):
     payload = {
         "model": "llama-3",
         "temperature": 0.1,
@@ -44,27 +43,18 @@ def call_api_streaming(prompt: str):
             line_json = json.loads(line.decode('utf-8'))
             if "choices" in line_json:
                 response_text += line_json["choices"][0]["delta"].get("content", "")
-                yield response_text
+    return response_text if response_text else "No valid response received from the API."
 
 def chat_fn(user_input, chat_history, eval_history):
     chat_prompt = chat_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}\nAverie: "
-    
+    chat_response = call_api(chat_prompt)
     chat_history.append(f"User: {user_input}")
-    chat_response = ""
-    
-    # Stream the chat response
-    for partial_response in call_api_streaming(chat_prompt):
-        chat_response = partial_response
-        chat_history[-1] = f"Averie: {chat_response}"
-        yield [(parse_codeblock(chat_history[i]), parse_codeblock(chat_history[i + 1])) for i in range(0, len(chat_history), 2)], chat_history, ""
-        time.sleep(0.5)  # Adjust sleep time as needed
-
-    chat_history[-1] = f"Averie: {chat_response}"
+    chat_history.append(f"Averie: {chat_response}")
 
     eval_prompt = eval_system_prompt + "\n" + "\n".join(chat_history) + f"\nUser: {user_input}"
-    eval_response = call_api(chat_prompt)
-    
-    yield [(parse_codeblock(chat_history[i]), parse_codeblock(chat_history[i + 1])) for i in range(0, len(chat_history), 2)], chat_history, eval_response
+    eval_response = call_api(eval_prompt)
+
+    return [(parse_codeblock(chat_history[i]), parse_codeblock(chat_history[i + 1])) for i in range(0, len(chat_history), 2)], chat_history, eval_response
 
 def reset_textbox():
     return gr.update(value='')
@@ -106,7 +96,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     state = gr.State([])
                     eval_state = gr.State([])
 
-                    user_input.submit(chat_fn, [user_input, state, eval_state], [chatbot, state, eval_state], stream=True)
+                    user_input.submit(chat_fn, [user_input, state, eval_state], [chatbot, state, eval_state])
                     user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")

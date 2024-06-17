@@ -55,15 +55,16 @@ def call_api(prompt: str):
                     pass
     yield response_text if response_text else "No valid response received from the API."
 
-def chat_fn(user_input, chat_history, eval_history):
+def chat_fn(user_input, chat_history):
     chat_prompt = chat_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history]) + f"\nUser: {user_input}\nAverie: "
     response_generator = call_api(chat_prompt)
     chat_history.append((user_input, ""))  # Append the user input and a placeholder for Averie's response
 
     for response in response_generator:
         chat_history[-1] = (user_input, response)  # Update the last entry with Averie's response
-        yield chat_history, chat_history, eval_history  # Update all states with new history
+        yield chat_history, chat_history
 
+def eval_fn(chat_history):
     eval_prompt = eval_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history])
     eval_response_generator = call_api(eval_prompt)
 
@@ -71,8 +72,7 @@ def chat_fn(user_input, chat_history, eval_history):
     for text in eval_response_generator:
         eval_text += text
 
-    eval_history.append(eval_text)
-    yield chat_history, chat_history, eval_history
+    return eval_text
 
 def reset_textbox():
     return gr.update(value='')
@@ -100,14 +100,13 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
                     user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
                     state = gr.State([])
-                    eval_state = gr.State([])
 
-                    user_input.submit(chat_fn, [user_input, state, eval_state], [chatbot, state, eval_state], queue=True)
+                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True)
                     user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML(elem_id="eval-output")
-                    eval_state.change(lambda eval_text: "".join(eval_text) if eval_text else "", inputs=[eval_state], outputs=[eval_output])
+                    state.change(lambda chat_history: eval_fn(chat_history), inputs=[state], outputs=[eval_output])
 
         with gr.TabItem("About"):
             gr.Markdown("""

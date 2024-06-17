@@ -69,11 +69,13 @@ def eval_fn(chat_history, eval_history):
     eval_prompt = eval_system_prompt + " " + " ".join([f"User: {h[0]} Averie: {h[1]}" for h in chat_history])
     eval_response_generator = call_api(eval_prompt)
 
-    eval_history.append(("Evaluation", ""))  # Append a placeholder for the evaluation response
+    eval_history = []  # Clear previous evaluation history
 
     for response in eval_response_generator:
         cleaned_response = response.split("**Analysis**")[-1].strip()
-        eval_history[-1] = ("Evaluation", cleaned_response)  # Update the last entry with the evaluation response
+        if len(cleaned_response.split("Potential Issues:")) > 1:
+            cleaned_response = "Potential Issues:" + cleaned_response.split("Potential Issues:")[1]
+        eval_history.append(("Evaluation", cleaned_response))  # Update with the new evaluation response
         print("Updated evaluation history:", eval_history)  # Debug print
         yield eval_history
 

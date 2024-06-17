@@ -109,12 +109,12 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
                     state = gr.State([])
 
-                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True).then(
-                        reset_textbox, [], [user_input]
-                    )
+                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True)
+                    user_input.submit(reset_textbox, [], [user_input])
+                    
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
-                    eval_output = gr.HTML(elem_id="eval-output")
+                    eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
                     eval_button = gr.Button("Evaluate Chat")
                     
                     eval_button.click(eval_fn, [state], [eval_output])

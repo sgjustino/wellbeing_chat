@@ -70,23 +70,12 @@ def chat_fn(user_input, chat_history, eval_history):
     eval_text = ""
     for text in eval_response_generator:
         eval_text += text
-        eval_history.append(eval_text)
-        yield chat_history, chat_history, eval_history  # Update all states with new history
+
+    eval_history.append(eval_text)
+    yield chat_history, chat_history, eval_history
 
 def reset_textbox():
     return gr.update(value='')
-
-def parse_codeblock(text):
-    lines = text.split("\n")
-    for i, line in enumerate(lines):
-        if "```" in line:
-            if line != "```":
-                lines[i] = f'<pre><code class="{lines[i][3:]}">'
-            else:
-                lines[i] = '</code></pre>'
-        else:
-            lines[i] = "<br/>" + line.replace("<", "&lt;").replace(">", "&gt;")
-    return "".join(lines)
 
 light_mode_js = """
 function refresh() {
@@ -117,8 +106,8 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     user_input.submit(reset_textbox, [], [user_input])
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
-                    eval_output = gr.Markdown(elem_id="eval-output")
-                    eval_state.change(lambda eval_text: eval_text[-1] if eval_text else "", inputs=[eval_state], outputs=[eval_output])
+                    eval_output = gr.HTML(elem_id="eval-output")
+                    eval_state.change(lambda eval_text: "".join(eval_text) if eval_text else "", inputs=[eval_state], outputs=[eval_output])
 
         with gr.TabItem("About"):
             gr.Markdown("""

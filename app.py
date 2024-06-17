@@ -27,7 +27,7 @@ responses. Keep your replies concise and engaging, similar to how you would spea
 eval_system_prompt = """
 You are a trained psychologist named Cora who is examining the interaction between a mental health assistant and someone who is troubled. 
 Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. 
-Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX
+Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX \nNext steps: XXX
 """
 
 def call_api(prompt: str):
@@ -72,7 +72,8 @@ def eval_fn(chat_history, eval_history):
     eval_history.append(("Evaluation", ""))  # Append a placeholder for the evaluation response
 
     for response in eval_response_generator:
-        eval_history[-1] = ("Evaluation", response)  # Update the last entry with the evaluation response
+        cleaned_response = response.split("**Analysis**")[-1].strip()
+        eval_history[-1] = ("Evaluation", cleaned_response)  # Update the last entry with the evaluation response
         print("Updated evaluation history:", eval_history)  # Debug print
         yield eval_history
 

@@ -27,7 +27,8 @@ responses. Keep your replies concise and engaging, similar to how you would spea
 eval_system_prompt = """
 You are a trained psychologist named Cora who is examining the interaction between a mental health assistant and someone who is troubled. 
 Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. 
-Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX \nNext steps: XXX
+Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX \nNext steps: XXX.
+Only output accordingly to the format, keep it concise and clear and do not output anything extra.
 """
 
 def call_api(prompt: str):

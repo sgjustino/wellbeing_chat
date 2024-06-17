@@ -39,10 +39,20 @@ def call_api(prompt: str):
     response = requests.post(url, json=payload, headers=headers, stream=True)
     response_text = ""
     for line in response.iter_lines():
+        print(f"Raw line: {line}")  # Print the raw line for debugging
         if line:
-            line_json = json.loads(line.decode('utf-8'))
-            if "choices" in line_json:
-                response_text += line_json["choices"][0]["delta"].get("content", "")
+            line_decoded = line.decode('utf-8').strip()
+            print(f"Decoded line: {line_decoded}")  # Print the decoded line for debugging
+            if line_decoded:  # Ensure the line is not empty
+                try:
+                    line_json = json.loads(line_decoded)
+                    print(f"JSON line: {line_json}")  # Print the JSON line for debugging
+                    if "choices" in line_json and line_json["choices"]:
+                        delta_content = line_json["choices"][0]["delta"].get("content", "")
+                        response_text += delta_content
+                except json.JSONDecodeError as e:
+                    print(f"JSONDecodeError: {e}")  # Print the error for debugging
+    print(f"Final response text: {response_text}")  # Print the final response text for debugging
     return response_text if response_text else "No valid response received from the API."
 
 def chat_fn(user_input, chat_history, eval_history):

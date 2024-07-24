@@ -91,6 +91,7 @@ def eval_fn(chat_history):
     
     return formatted_output, follow_up.group(1).strip() if follow_up else "N/A"
 
+
 def reset_textbox():
     return gr.update(value='')
 
@@ -123,6 +124,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
+                    follow_up_input = gr.Textbox(label="Follow-up Question for Averie", interactive=False)
                     eval_button = gr.Button("Evaluate Chat")
 
         with gr.TabItem("About"):
@@ -136,18 +138,10 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
             This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
 
-    def handle_evaluation(formatted_output, follow_up_question):
-        # Display the evaluation result
-        eval_output.update(formatted_output)
-        # Return the follow-up question to be used in the next chat input
-        return gr.update(value=follow_up_question)
-
-    send_button.click(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
-    user_input.submit(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
+    send_button.click(chat_fn, inputs=[user_input, chatbot, follow_up_input], outputs=chatbot)
+    user_input.submit(chat_fn, inputs=[user_input, chatbot, follow_up_input], outputs=chatbot)
     user_input.submit(reset_textbox, [], [user_input])
-    eval_button.click(eval_fn, inputs=[chatbot], outputs=[eval_output]).then(
-        handle_evaluation, inputs=[eval_output, chatbot], outputs=user_input
-    )
+    eval_button.click(eval_fn, inputs=[chatbot], outputs=[eval_output, follow_up_input])
 
 # Launch the Gradio app
 interface.launch(share=False)

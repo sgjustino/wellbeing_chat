@@ -53,8 +53,8 @@ def eval_fn(chat_history):
             Format your response exactly as follows:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Follow-up Question: [One single brief follow-up question to assist in the mental health analysis]
-            Keep each section brief and concise. Provide only ONE brief and concise follow-up question."""
+            Follow-up Question: [1 follow-up question to assist in the mental health analysis. Do not ask more than 1 question]
+            Keep each section brief and concise. Ensure you provide only 1 follow-up question."""
         }
     ]
     

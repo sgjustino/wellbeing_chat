@@ -27,9 +27,9 @@ def chat_fn(user_input, chat_history, follow_up_question=""):
 
     stream = client.chat.completions.create(
         messages=messages,
-        model="llama3-70b-8192",
+        model="llama3-8b-8192",
         temperature=0.7,
-        max_tokens=1024,
+        max_tokens=500,
         top_p=1,
         stream=True,
     )
@@ -64,7 +64,7 @@ def eval_fn(chat_history):
     
     response = client.chat.completions.create(
         messages=messages,
-        model="llama3-70b-8192",
+        model="llama3-8b-8192",
         temperature=0.5,
         max_tokens=500,
         top_p=1,

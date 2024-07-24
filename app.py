@@ -1,14 +1,16 @@
-import os
 import gradio as gr
-from transformers import AutoTokenizer, AutoModelForCausalLM
+import os
+import spaces
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+from threading import Thread
 
 # Load chatbot model
 chat_tokenizer = AutoTokenizer.from_pretrained("Sgjustino/futaro_chat")
-chat_model = AutoModelForCausalLM.from_pretrained("Sgjustino/futaro_chat")
+chat_model = AutoModelForCausalLM.from_pretrained("Sgjustino/futaro_chat", device_map="auto")
 
 # Load evaluation model
 eval_tokenizer = AutoTokenizer.from_pretrained("klyang/MentaLLaMA-chat-7B")
-eval_model = AutoModelForCausalLM.from_pretrained("klyang/MentaLLaMA-chat-7B")
+eval_model = AutoModelForCausalLM.from_pretrained("klyang/MentaLLaMA-chat-7B", device_map="auto")
 
 # System prompts
 chat_system_prompt = """
@@ -25,10 +27,26 @@ Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX \nNext steps: 
 Only output accordingly to the format, keep it concise and clear and do not output anything extra.
 """
 
-def generate_response(model, tokenizer, prompt, max_length=500):
-    inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs, max_length=max_length)
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+MAX_INPUT_TOKEN_LENGTH = 4096
+
+@spaces.GPU(duration=120)
+def generate_response(model, tokenizer, prompt, max_new_tokens=500, temperature=0.7):
+    input_ids = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=MAX_INPUT_TOKEN_LENGTH).input_ids.to(model.device)
+    
+    streamer = TextIteratorStreamer(tokenizer, timeout=10.0, skip_prompt=True, skip_special_tokens=True)
+    
+    generate_kwargs = dict(
+        input_ids=input_ids,
+        max_new_tokens=max_new_tokens,
+        temperature=temperature,
+        do_sample=True,
+        streamer=streamer,
+    )
+
+    t = Thread(target=model.generate, kwargs=generate_kwargs)
+    t.start()
+
+    return "".join([text for text in streamer])
 
 def chat_fn(user_input, chat_history):
     chat_prompt = chat_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history]) + f"\nUser: {user_input}\nAverie: "
@@ -48,56 +66,21 @@ def eval_fn(chat_history):
 
     return cleaned_response
 
-def reset_textbox():
-    return gr.update(value='')
-
-light_mode_js = """
-function refresh() {
-    const url = new URL(window.location);
-
-    if (url.searchParams.get('__theme') !== 'light') {
-        url.searchParams.set('__theme', 'light');
-        window.location.href = url.href;
-    }
-}
-"""
-
-title = "Chat with Averie and Evaluation by Cora"
-description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
-
-with gr.Blocks(css="style.css", js=light_mode_js) as interface:
+# Gradio interface setup
+with gr.Blocks() as interface:
     with gr.Tabs():
-        with gr.TabItem("Chat", elem_id="chat-tab"):
-            with gr.Row():
-                with gr.Column(elem_id="left-pane", scale=1):
-                    gr.Markdown("### Chat with Averie")
-                    chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
-                    user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
-                    state = gr.State([])
+        with gr.TabItem("Chat"):
+            chatbot = gr.Chatbot()
+            msg = gr.Textbox()
+            clear = gr.Button("Clear")
 
-                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True)
-                    user_input.submit(reset_textbox, [], [user_input])
-                    
-                with gr.Column(elem_id="right-pane", scale=1):
-                    gr.Markdown("### Evaluation by Cora")
-                    eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
-                    eval_button = gr.Button("Evaluate Chat")
-                    
-                    eval_button.click(eval_fn, [state], [eval_output])
+        with gr.TabItem("Evaluation"):
+            eval_output = gr.Textbox()
+            eval_button = gr.Button("Evaluate Chat")
 
-        with gr.TabItem("About"):
-            gr.Markdown("""
-            ## About Averie and Cora
-
-            ### Averie
-            Averie is your friendly mental health assistant designed to provide supportive conversations. She aims to offer helpful and cheerful responses to improve mental well-being until professional help can be sought. Averie is always ready to listen and provide comfort.
-
-            ### Cora
-            Cora is a trained psychologist who evaluates the interactions between Averie and users. She conducts mental health analyses to identify potential issues and likely reasons. Cora provides insights based on the conversations to ensure users receive the best possible support and guidance.
-
-            ## Disclaimer 
-            This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
-            """)
+    msg.submit(chat_fn, [msg, chatbot], [chatbot])
+    clear.click(lambda: None, None, chatbot, queue=False)
+    eval_button.click(eval_fn, [chatbot], [eval_output])
 
 # Launch the Gradio app
-interface.launch(share=False)
+interface.launch()

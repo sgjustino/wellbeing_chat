@@ -129,7 +129,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
 
         with gr.TabItem("About"):
             gr.Markdown("""
-            ## **About Averie and Cora**
+## **About Averie and Cora**
 This is a proof-of-concept project demonstrating how two LLMs, both based on the LLaMA 3 7B model via the Groq.com API, can work together. One acts as a wellbeing chatbot designed to provide supportive conversations, and the other analyzes these interactions as a separate entity to identify potential issues, likely causes, and suggest follow-up questions to improve the conversations.
 
 ### **Averie**

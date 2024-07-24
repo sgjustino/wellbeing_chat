@@ -1,6 +1,7 @@
 import os
 import json
 import gradio as gr
+import re
 from groq import Groq
 
 # Create the Groq client
@@ -47,13 +48,11 @@ def eval_fn(chat_history):
         {
             "role": "system",
             "content": """You are a trained psychologist named Cora. Analyze the following conversation and provide a brief mental health analysis. 
-            Output the analysis in JSON format using the following schema:
-            {
-              "potential_issues": ["issue1", "issue2"],
-              "likely_causes": ["cause1", "cause2"],
-              "next_steps": ["step1", "step2"]
-            }
-            Each field should contain a list of brief, concise points."""
+            Format your response exactly as follows:
+            Potential Issues: [List issues here, separated by commas]
+            Likely Causes: [List causes here, separated by commas]
+            Next Steps: [List steps here, separated by commas]
+            Keep each section brief and concise."""
         }
     ]
     
@@ -71,20 +70,19 @@ def eval_fn(chat_history):
         stream=False,
     )
 
-    try:
-        evaluation = json.loads(response.choices[0].message.content)
-        
-        formatted_output = (
-            f"Potential Issues: {', '.join(evaluation['potential_issues'])} | "
-            f"Likely Causes: {', '.join(evaluation['likely_causes'])} | "
-            f"Next steps: {', '.join(evaluation['next_steps'])}"
-        )
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON: {e}")
-        formatted_output = "Error in evaluation. Please try again."
-    except KeyError as e:
-        print(f"Missing key in JSON: {e}")
-        formatted_output = "Incomplete evaluation. Please try again."
+    content = response.choices[0].message.content
+
+    # Use regex to extract the sections
+    potential_issues = re.search(r'Potential Issues:(.*?)(?:Likely Causes:|$)', content, re.DOTALL)
+    likely_causes = re.search(r'Likely Causes:(.*?)(?:Next Steps:|$)', content, re.DOTALL)
+    next_steps = re.search(r'Next Steps:(.*?)$', content, re.DOTALL)
+
+    # Format the output
+    formatted_output = "Potential Issues: {} | Likely Causes: {} | Next Steps: {}".format(
+        potential_issues.group(1).strip() if potential_issues else "N/A",
+        likely_causes.group(1).strip() if likely_causes else "N/A",
+        next_steps.group(1).strip() if next_steps else "N/A"
+    )
 
     return formatted_output
 

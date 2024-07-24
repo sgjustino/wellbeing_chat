@@ -124,9 +124,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
 ## **Background**
 This project showcases a proof-of-concept where two LLMs work together: Averie, a friendly wellbeing chatbot, assists users by providing supportive conversations, while Cora, a separate LLM, analyzes the conversations to identify potential issues, likely causes, and suggest follow-up questions to improve the interactions. Both LLMs are based on the LLaMA 3 7B model via the Groq.com API. 
 
-## Subsequent Improvement
-While this is an MVP, future development could make significant strides to ensure its effectiveness in real-life settings:
-
+## Areas to Improve for Actual Deployment
 1) **Training and Fine-tuning with Real-life Therapy Transcripts**: To ensure that Averie engages users as a qualified psychologist would, it is crucial to train and fine-tune the LLM with transcripts from real-life therapy sessions conducted by qualified psychologists. Post-training, validation tests should be conducted to ensure the chatbot's responses meet the standards and quality suitable for deployment.
 
 2) **Integrating Validated Mental Health Questionnaires**: Incorporating validated mental health questionnaires (e.g. PHQ-9 and GAD-7)) into the LLM can enable the system to prompt relevant questions to identify issues and concerns or determine if there is a need to escalate the situation. The MentaLLaMA project from the [Interpretable Mental Health Instruction (IMHI)](https://arxiv.org/abs/2309.13567) paper is an example of this approach, enabling interpretable mental health analysis on social media.

@@ -54,7 +54,7 @@ def eval_fn(chat_history):
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
             Follow-up Question: [One single brief follow-up question to assist in the mental health analysis]
-            Keep each section brief and concise."""
+            Keep each section brief and concise. Provide only ONE brief and concise follow-up question."""
         }
     ]
     
@@ -81,17 +81,20 @@ def eval_fn(chat_history):
     # Process the follow-up question to remove repetition
     if follow_up:
         follow_up_text = follow_up.group(1).strip()
-        # Remove any text after the first sentence ending with a question mark
-        follow_up_text = re.split(r'\?', follow_up_text)[0] + '?'
-        # Remove any remaining commas
-        follow_up_text = follow_up_text.replace(',', '')
+        # Remove any repeated phrases
+        sentences = re.split(r'[.?!]\s*', follow_up_text)
+        unique_sentences = list(dict.fromkeys(sentences))  # Remove duplicates while preserving order
+        follow_up_text = ' '.join(unique_sentences).strip()
+        # Ensure it ends with a question mark
+        if not follow_up_text.endswith('?'):
+            follow_up_text += '?'
     else:
         follow_up_text = "N/A"
     
     # Format the output
     formatted_output = "Potential Issues: {} | Likely Causes: {} | Follow-up Question: {}".format(
         potential_issues.group(1).strip() if potential_issues else "N/A",
-        likely_causes.group(1).strip() if likely_causes else "N/A",
+        likely_causes.group(1).strip() if likely_cases else "N/A",
         follow_up_text
     )
     return formatted_output, follow_up_text

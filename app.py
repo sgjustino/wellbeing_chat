@@ -113,19 +113,6 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
     gr.Markdown(description)
     
     with gr.Tabs():
-        with gr.TabItem("Chat", elem_id="chat-tab"):
-            with gr.Row():
-                with gr.Column(elem_id="left-pane", scale=1):
-                    gr.Markdown("### Chat with Averie")
-                    chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
-                    user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
-                    send_button = gr.Button("Send")
-                
-                with gr.Column(elem_id="right-pane", scale=1):
-                    gr.Markdown("### Evaluation by Cora")
-                    eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
-                    follow_up_input = gr.Textbox(label="Follow-up Question for Averie", interactive=False)
-                    eval_button = gr.Button("Evaluate Chat")
 
         with gr.TabItem("About"):
             gr.Markdown("""
@@ -154,6 +141,20 @@ While this is an MVP, future development could make significant strides to ensur
 This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
 """)
 
+        with gr.TabItem("Chat", elem_id="chat-tab"):
+            with gr.Row():
+                with gr.Column(elem_id="left-pane", scale=1):
+                    gr.Markdown("### Chat with Averie")
+                    chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
+                    user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
+                    send_button = gr.Button("Send")
+                
+                with gr.Column(elem_id="right-pane", scale=1):
+                    gr.Markdown("### Evaluation by Cora")
+                    eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
+                    follow_up_input = gr.Textbox(label="Follow-up Question for Averie", interactive=False)
+                    eval_button = gr.Button("Evaluate Chat")
+                    
     send_button.click(chat_fn, inputs=[user_input, chatbot, follow_up_input], outputs=chatbot)
     user_input.submit(chat_fn, inputs=[user_input, chatbot, follow_up_input], outputs=chatbot)
     user_input.submit(reset_textbox, [], [user_input])

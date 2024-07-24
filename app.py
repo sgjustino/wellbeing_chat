@@ -46,6 +46,7 @@ def chat_fn(user_input, chat_history, next_question=""):
     return chat_history
 
 def eval_fn(chat_history):
+    
     messages = [
         {
             "role": "system",
@@ -53,8 +54,8 @@ def eval_fn(chat_history):
             Format your response exactly as follows:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Next Question: [One important follow-up question to assist in the mental health analysis]
-            Keep each section brief and concise."""
+            Follow-up for Conversation: [List follow-up queries or important points to assist in the mental health analysis]
+            Keep each section brief and concise. For the follow-up queries, keep it to max of 2-3."""
         }
     ]
     

@@ -53,8 +53,7 @@ def eval_fn(chat_history):
             Format your response EXACTLY as follows and keep each section brief and concise:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Follow-up Question: [List follow-up queries to assist in the mental health analysis]
-            Keep each section brief and concise."""
+            Follow-up Question: [One single follow-up question to assist in the mental health analysis]"""
         }
     ]
     

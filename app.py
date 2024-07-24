@@ -67,7 +67,13 @@ def eval_fn(chat_history):
             evaluation += chunk.choices[0].delta.content
             yield evaluation
 
-    return evaluation
+    # Ensure the output follows the specified format
+    formatted_output = "Potential Issues: | Likely Causes: | Next steps:"
+    parts = evaluation.split("|")
+    if len(parts) == 3:
+        formatted_output = f"Potential Issues: {parts[0].split(':')[-1].strip()} | Likely Causes: {parts[1].split(':')[-1].strip()} | Next steps: {parts[2].split(':')[-1].strip()}"
+
+    return formatted_output
 
 def reset_textbox():
     return gr.update(value='')

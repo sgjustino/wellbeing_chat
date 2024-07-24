@@ -1,17 +1,10 @@
 import os
 import json
-from typing import List, Optional
-from pydantic import BaseModel
 import gradio as gr
 from groq import Groq
 
 # Create the Groq client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-
-class EvaluationResult(BaseModel):
-    potential_issues: List[str]
-    likely_causes: List[str]
-    next_steps: List[str]
 
 def chat_fn(user_input, chat_history):
     messages = [
@@ -53,9 +46,13 @@ def eval_fn(chat_history):
     messages = [
         {
             "role": "system",
-            "content": f"""You are a trained psychologist named Cora. Analyze the following conversation and provide a brief mental health analysis. 
+            "content": """You are a trained psychologist named Cora. Analyze the following conversation and provide a brief mental health analysis. 
             Output the analysis in JSON format using the following schema:
-            {json.dumps(EvaluationResult.model_json_schema(), indent=2)}
+            {
+              "potential_issues": ["issue1", "issue2"],
+              "likely_causes": ["cause1", "cause2"],
+              "next_steps": ["step1", "step2"]
+            }
             Each field should contain a list of brief, concise points."""
         }
     ]
@@ -72,20 +69,22 @@ def eval_fn(chat_history):
         max_tokens=1024,
         top_p=1,
         stream=False,
-        response_format={"type": "json_object"},
     )
 
     try:
-        evaluation = EvaluationResult.model_validate_json(response.choices[0].message.content)
+        evaluation = json.loads(response.choices[0].message.content)
         
         formatted_output = (
-            f"Potential Issues: {', '.join(evaluation.potential_issues)} | "
-            f"Likely Causes: {', '.join(evaluation.likely_causes)} | "
-            f"Next steps: {', '.join(evaluation.next_steps)}"
+            f"Potential Issues: {', '.join(evaluation['potential_issues'])} | "
+            f"Likely Causes: {', '.join(evaluation['likely_causes'])} | "
+            f"Next steps: {', '.join(evaluation['next_steps'])}"
         )
-    except Exception as e:
+    except json.JSONDecodeError as e:
         print(f"Error parsing JSON: {e}")
         formatted_output = "Error in evaluation. Please try again."
+    except KeyError as e:
+        print(f"Missing key in JSON: {e}")
+        formatted_output = "Incomplete evaluation. Please try again."
 
     return formatted_output
 

@@ -1,20 +1,14 @@
 import os
-import json
 import gradio as gr
-import requests
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
-# Retrieve the API code from the environment variable
-api_code = os.getenv("api_code")
+# Load chatbot model
+chat_tokenizer = AutoTokenizer.from_pretrained("Sgjustino/futaro_chat")
+chat_model = AutoModelForCausalLM.from_pretrained("Sgjustino/futaro_chat")
 
-# API endpoint
-url = "https://api.corcel.io/v1/text/vision/chat"
-
-# Headers with authorization
-headers = {
-    "accept": "application/json",
-    "content-type": "application/json",
-    "Authorization": f"Bearer {api_code}"
-}
+# Load evaluation model
+eval_tokenizer = AutoTokenizer.from_pretrained("klyang/MentaLLaMA-chat-7B")
+eval_model = AutoModelForCausalLM.from_pretrained("klyang/MentaLLaMA-chat-7B")
 
 # System prompts
 chat_system_prompt = """
@@ -31,51 +25,23 @@ Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX \nNext steps: 
 Only output accordingly to the format, keep it concise and clear and do not output anything extra.
 """
 
-def call_api(prompt: str):
-    payload = {
-        "model": "llama-3",
-        "temperature": 0.1,
-        "max_tokens": 500,
-        "messages": [{"role": "user", "content": prompt}]
-    }
-    response = requests.post(url, json=payload, headers=headers, stream=True)
-    response_text = ""
-    for line in response.iter_lines():
-        if line:
-            line_decoded = line.decode('utf-8').strip()
-            if line_decoded.startswith("data: "):
-                line_decoded = line_decoded[len("data: "):]  # Remove the "data: " prefix
-            if line_decoded:
-                try:
-                    line_json = json.loads(line_decoded)
-                    if "choices" in line_json and line_json["choices"]:
-                        delta_content = line_json["choices"][0]["delta"].get("content", "")
-                        response_text += delta_content
-                        yield response_text
-                except json.JSONDecodeError:
-                    pass
-    yield response_text if response_text else "No valid response received from the API."
+def generate_response(model, tokenizer, prompt, max_length=500):
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(**inputs, max_length=max_length)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 def chat_fn(user_input, chat_history):
     chat_prompt = chat_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history]) + f"\nUser: {user_input}\nAverie: "
-    response_generator = call_api(chat_prompt)
-    chat_history.append((user_input, ""))  # Append the user input and a placeholder for Averie's response
-
-    for response in response_generator:
-        chat_history[-1] = (user_input, response)  # Update the last entry with Averie's response
-        print("Updated chat history:", chat_history)  # Debug print
-        yield chat_history, chat_history
+    response = generate_response(chat_model, chat_tokenizer, chat_prompt)
+    chat_history.append((user_input, response))
+    return chat_history, chat_history
 
 def eval_fn(chat_history):
     eval_prompt = eval_system_prompt + " " + " ".join([f"User: {h[0]} Averie: {h[1]}" for h in chat_history])
-    eval_response_generator = call_api(eval_prompt)
-
-    final_response = ""
-    for response in eval_response_generator:
-        final_response = response  # Update with the new evaluation response
-
+    eval_response = generate_response(eval_model, eval_tokenizer, eval_prompt)
+    
     # Clean the response
-    cleaned_response = final_response.split("**Analysis**")[-1].strip()
+    cleaned_response = eval_response.split("**Analysis**")[-1].strip()
     if "Potential Issues:" in cleaned_response:
         cleaned_response = cleaned_response.split("Potential Issues:")[-1]
         cleaned_response = "Potential Issues:" + cleaned_response

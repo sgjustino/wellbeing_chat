@@ -77,12 +77,11 @@ def eval_fn(chat_history):
     likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Question:|$)', content, re.DOTALL)
     follow_up = re.search(r'Follow-up Question:(.*?)$', content, re.DOTALL)
     
-    # Format the output with HTML for better visual separation
     formatted_output = """
     <div style="text-align:left;">
-        <strong>Potential Issues:</strong> {}<br><br>
-        <strong>Likely Causes:</strong> {}<br><br>
-        <strong>Follow-up Question:</strong> {}
+        <strong>Potential Issues:</strong><br>{}<br><br>
+        <strong>Likely Causes:</strong><br>{}<br><br>
+        <strong>Follow-up Question:</strong><br>{}
     </div>
     """.format(
         potential_issues.group(1).strip() if potential_issues else "N/A",
@@ -91,6 +90,7 @@ def eval_fn(chat_history):
     )
     
     return formatted_output, follow_up.group(1).strip() if follow_up else "N/A"
+
 
 def reset_textbox():
     return gr.update(value='')

@@ -53,8 +53,8 @@ def eval_fn(chat_history):
             Format your response EXACTLY as follows, with NO repetition:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Follow-up Question: [ONE single brief follow-up question to assist in the mental health analysis. Do not repeat this question.]
-            Keep each section brief and concise. Provide only ONE brief and concise follow-up question without any repetition."""
+            Follow-up Question: [ONE single brief follow-up question to assist in the mental health analysis]
+            Keep each section brief and concise. Provide only ONE brief and concise follow-up question."""
         }
     ]
     
@@ -78,26 +78,13 @@ def eval_fn(chat_history):
     likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Question:|$)', content, re.DOTALL)
     follow_up = re.search(r'Follow-up Question:(.*?)$', content, re.DOTALL)
     
-    # Process the follow-up question to remove repetition
-    if follow_up:
-        follow_up_text = follow_up.group(1).strip()
-        # Remove any repeated phrases
-        sentences = re.split(r'[.?!]\s*', follow_up_text)
-        unique_sentences = list(dict.fromkeys(sentences))  # Remove duplicates while preserving order
-        follow_up_text = ' '.join(unique_sentences).strip()
-        # Ensure it ends with a question mark
-        if not follow_up_text.endswith('?'):
-            follow_up_text += '?'
-    else:
-        follow_up_text = "N/A"
-    
     # Format the output
     formatted_output = "Potential Issues: {} | Likely Causes: {} | Follow-up Question: {}".format(
         potential_issues.group(1).strip() if potential_issues else "N/A",
-        likely_causes.group(1).strip() if likely_causes else "N/A", 
-        follow_up_text
+        likely_causes.group(1).strip() if likely_causes else "N/A",
+        follow_up.group(1).strip() if follow_up else "N/A"
     )
-    return formatted_output, follow_up_text
+    return formatted_output, follow_up.group(1).strip() if follow_up else "N/A"
 
 def reset_textbox():
     return gr.update(value='')

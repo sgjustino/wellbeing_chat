@@ -3,3 +3,4 @@ gradio
 transformers
 torch
 accelerate
+sentencepiece

@@ -5,68 +5,103 @@ from groq import Groq
 # Create the Groq client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# Set the system prompt
-system_prompt = {
-    "role": "system",
-    "content": "You are a helpful assistant named Averie. You are a mental health assistant who provides supportive conversations. You reply with helpful and cheerful responses."
-}
-
-# Initialize the chat history
-chat_history = [system_prompt]
-
-def chat_fn(user_input, history):
-    # Append the user input to the chat history
-    chat_history.append({"role": "user", "content": user_input})
+def chat_fn(user_input, chat_history):
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant named Averie. You are a mental health assistant who provides supportive conversations. You reply with helpful and cheerful responses."
+        }
+    ]
     
-    response = client.chat.completions.create(
+    # Add conversation history
+    for user_msg, assistant_msg in chat_history:
+        messages.append({"role": "user", "content": user_msg})
+        messages.append({"role": "assistant", "content": assistant_msg})
+    
+    # Add the new user message
+    messages.append({"role": "user", "content": user_input})
+
+    stream = client.chat.completions.create(
+        messages=messages,
         model="llama3-8b-8192",
-        messages=chat_history,
-        max_tokens=100,
-        temperature=0.7
+        temperature=0.7,
+        max_tokens=1024,
+        top_p=1,
+        stream=True,
     )
-    
-    # Append the response to the chat history
-    assistant_message = response.choices[0].message.content
-    chat_history.append({
-        "role": "assistant",
-        "content": assistant_message
-    })
-    
-    # Update the visible chat history for Gradio
-    history.append((user_input, assistant_message))
-    return history
 
-def eval_fn(history):
-    eval_prompt = {
-        "role": "system",
-        "content": "You are a trained psychologist named Cora. Analyze the following conversation and provide a brief mental health analysis. Format the output as: Potential Issues: XXX | Likely Causes: XXX | Next steps: XXX."
+    assistant_message = ""
+    for chunk in stream:
+        if chunk.choices[0].delta.content is not None:
+            assistant_message += chunk.choices[0].delta.content
+            yield chat_history + [(user_input, assistant_message)]
+
+    chat_history.append((user_input, assistant_message))
+    return chat_history
+
+def eval_fn(chat_history):
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a trained psychologist named Cora. Analyze the following conversation and provide a brief mental health analysis. Format the output as: Potential Issues: XXX | Likely Causes: XXX | Next steps: XXX."
+        }
+    ]
+    
+    # Add entire conversation history
+    for user_msg, assistant_msg in chat_history:
+        messages.append({"role": "user", "content": user_msg})
+        messages.append({"role": "assistant", "content": assistant_msg})
+
+    stream = client.chat.completions.create(
+        messages=messages,
+        model="llama3-8b-8192",
+        temperature=0.5,
+        max_tokens=1024,
+        top_p=1,
+        stream=True,
+    )
+
+    evaluation = ""
+    for chunk in stream:
+        if chunk.choices[0].delta.content is not None:
+            evaluation += chunk.choices[0].delta.content
+            yield evaluation
+
+    return evaluation
+
+def reset_textbox():
+    return gr.update(value='')
+
+light_mode_js = """
+function refresh() {
+    const url = new URL(window.location);
+    if (url.searchParams.get('__theme') !== 'light') {
+        url.searchParams.set('__theme', 'light');
+        window.location.href = url.href;
     }
-    
-    eval_messages = [eval_prompt] + [{"role": "user" if i % 2 == 0 else "assistant", "content": msg} for i, msg in enumerate(sum(history, ()))]
-    
-    response = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=eval_messages,
-        max_tokens=200,
-        temperature=0.5
-    )
-    
-    return response.choices[0].message.content
+}
+"""
 
-# Gradio interface
-with gr.Blocks() as interface:
-    gr.Markdown("# Chat with Averie and Evaluation by Cora")
-    gr.Markdown("A friendly mental health assistant chatbot and its evaluation by a trained psychologist.")
+title = "Chat with Averie and Evaluation by Cora"
+description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
+
+with gr.Blocks(css="style.css", js=light_mode_js) as interface:
+    gr.Markdown(f"# {title}")
+    gr.Markdown(description)
     
     with gr.Tabs():
-        with gr.TabItem("Chat"):
-            chatbot = gr.Chatbot(label="Chat with Averie")
-            user_input = gr.Textbox(label="Your message")
-            send_button = gr.Button("Send")
-
-        with gr.TabItem("Evaluation"):
-            eval_output = gr.Textbox(label="Evaluation by Cora")
-            eval_button = gr.Button("Evaluate Chat")
+        with gr.TabItem("Chat", elem_id="chat-tab"):
+            with gr.Row():
+                with gr.Column(elem_id="left-pane", scale=1):
+                    gr.Markdown("### Chat with Averie")
+                    chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
+                    user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
+                    send_button = gr.Button("Send")
+                
+                with gr.Column(elem_id="right-pane", scale=1):
+                    gr.Markdown("### Evaluation by Cora")
+                    eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
+                    eval_button = gr.Button("Evaluate Chat")
 
         with gr.TabItem("About"):
             gr.Markdown("""
@@ -80,7 +115,9 @@ with gr.Blocks() as interface:
             """)
 
     send_button.click(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
+    user_input.submit(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
+    user_input.submit(reset_textbox, [], [user_input])
     eval_button.click(eval_fn, inputs=[chatbot], outputs=eval_output)
 
 # Launch the Gradio app
-interface.launch()
+interface.launch(share=False)

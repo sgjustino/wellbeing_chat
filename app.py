@@ -81,10 +81,10 @@ def eval_fn(chat_history):
     # Process the follow-up question to remove repetition
     if follow_up:
         follow_up_text = follow_up.group(1).strip()
-        # Split by comma and take the first part to remove repetition
-        follow_up_text = follow_up_text.split(',')[0].strip()
-        # Remove trailing question mark if present
-        follow_up_text = follow_up_text.rstrip('?') + '?'
+        # Remove any text after the first sentence ending with a question mark
+        follow_up_text = re.split(r'\?', follow_up_text)[0] + '?'
+        # Remove any remaining commas
+        follow_up_text = follow_up_text.replace(',', '')
     else:
         follow_up_text = "N/A"
     

@@ -79,9 +79,12 @@ def eval_fn(chat_history):
     
     formatted_output = """
     <div style="text-align:left;">
-        <strong>Potential Issues:</strong><br>{}<br><br>
-        <strong>Likely Causes:</strong><br>{}<br><br>
-        <strong>Follow-up Question:</strong><br>{}
+        <p style="margin: 0;"><strong>Potential Issues:</strong></p>
+        <p style="margin: 0 0 15px 0;">{}</p>
+        <p style="margin: 0;"><strong>Likely Causes:</strong></p>
+        <p style="margin: 0 0 15px 0;">{}</p>
+        <p style="margin: 0;"><strong>Follow-up Question:</strong></p>
+        <p style="margin: 0;">{}</p>
     </div>
     """.format(
         potential_issues.group(1).strip() if potential_issues else "N/A",

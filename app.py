@@ -55,7 +55,7 @@ def eval_fn(chat_history):
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
             Follow-up for Conversation: [One important follow-up question to assist in the mental health analysis]
-            Keep each section brief and concise."""
+            Keep each section brief and concise. Provide only ONE follow-up question."""
         }
     ]
     

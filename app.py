@@ -106,8 +106,6 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
     gr.Markdown(f"# {title}")
     gr.Markdown(description)
     
-    next_question = gr.State("")  # Add this to store the follow-up question
-    
     with gr.Tabs():
         with gr.TabItem("Chat", elem_id="chat-tab"):
             with gr.Row():
@@ -133,15 +131,10 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
             This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
 
-    send_button.click(chat_fn, inputs=[user_input, chatbot, next_question], outputs=chatbot)
-    user_input.submit(chat_fn, inputs=[user_input, chatbot, next_question], outputs=chatbot)
+    send_button.click(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
+    user_input.submit(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
     user_input.submit(reset_textbox, [], [user_input])
-    
-    def handle_eval(chat_history):
-        formatted_output, follow_up = eval_fn(chat_history)
-        return formatted_output, follow_up
-    
-    eval_button.click(handle_eval, inputs=[chatbot], outputs=[eval_output, next_question])
+    eval_button.click(eval_fn, inputs=[chatbot], outputs=eval_output)
 
 # Launch the Gradio app
 interface.launch(share=False)

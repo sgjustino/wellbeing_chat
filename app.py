@@ -1,17 +1,9 @@
 import gradio as gr
 import os
-import spaces
-from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
-from threading import Thread
-import torch
+from groq import Groq
 
-# Load chatbot model
-chat_tokenizer = AutoTokenizer.from_pretrained("Sgjustino/futaro_chat")
-chat_model = AutoModelForCausalLM.from_pretrained("Sgjustino/futaro_chat")
-
-# Load evaluation model
-eval_tokenizer = AutoTokenizer.from_pretrained("klyang/MentaLLaMA-chat-7B")
-eval_model = AutoModelForCausalLM.from_pretrained("klyang/MentaLLaMA-chat-7B")
+# Create the Groq client
+client = Groq(api_key=os.environ.get("groq_api"))
 
 # System prompts
 chat_system_prompt = """
@@ -28,45 +20,32 @@ Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX \nNext steps: 
 Only output accordingly to the format, keep it concise and clear and do not output anything extra.
 """
 
-MAX_INPUT_TOKEN_LENGTH = 4096
-
-@spaces.GPU
-def generate_response(model, tokenizer, prompt, max_new_tokens=500, temperature=0.7):
-    input_ids = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=MAX_INPUT_TOKEN_LENGTH).input_ids.to('cuda')
-    model.to('cuda')
+def generate_response(prompt, system_prompt, max_tokens=500, temperature=0.7):
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt}
+    ]
     
-    streamer = TextIteratorStreamer(tokenizer, timeout=10.0, skip_prompt=True, skip_special_tokens=True)
-    
-    generate_kwargs = dict(
-        input_ids=input_ids,
-        max_new_tokens=max_new_tokens,
-        temperature=temperature,
-        do_sample=True,
-        streamer=streamer,
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=messages,
+        max_tokens=max_tokens,
+        temperature=temperature
     )
-
-    t = Thread(target=model.generate, kwargs=generate_kwargs)
-    t.start()
-
-    return "".join([text for text in streamer])
+    
+    return response.choices[0].message.content
 
 def chat_fn(user_input, chat_history):
-    chat_prompt = chat_system_prompt + "\n" + "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history]) + f"\nUser: {user_input}\nAverie: "
-    response = generate_response(chat_model, chat_tokenizer, chat_prompt)
+    chat_prompt = "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history]) + f"\nUser: {user_input}\nAverie: "
+    response = generate_response(chat_prompt, chat_system_prompt)
     chat_history.append((user_input, response))
     return chat_history, chat_history
 
 def eval_fn(chat_history):
-    eval_prompt = eval_system_prompt + " " + " ".join([f"User: {h[0]} Averie: {h[1]}" for h in chat_history])
-    eval_response = generate_response(eval_model, eval_tokenizer, eval_prompt)
+    eval_prompt = " ".join([f"User: {h[0]} Averie: {h[1]}" for h in chat_history])
+    eval_response = generate_response(eval_prompt, eval_system_prompt)
     
-    # Clean the response
-    cleaned_response = eval_response.split("**Analysis**")[-1].strip()
-    if "Potential Issues:" in cleaned_response:
-        cleaned_response = cleaned_response.split("Potential Issues:")[-1]
-        cleaned_response = "Potential Issues:" + cleaned_response
-
-    return cleaned_response
+    return eval_response
 
 def reset_textbox():
     return gr.update(value='')

@@ -66,7 +66,7 @@ def eval_fn(chat_history):
         messages=messages,
         model="llama3-8b-8192",
         temperature=0.5,
-        max_tokens=500,
+        max_tokens=8000,
         top_p=1,
         stream=False,
     )

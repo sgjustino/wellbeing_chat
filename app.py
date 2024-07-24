@@ -106,10 +106,12 @@ function refresh() {
 """
 
 title = "A Project on Integrating a Wellbeing Chatbot with an Analytical LLM for Conversation Insights"
+description= ""
 
 with gr.Blocks(css="style.css", js=light_mode_js) as interface:
     gr.Markdown(f"# {title}")
-
+    gr.Markdown(description)
+    
     with gr.Tabs():
 
         with gr.TabItem("About"):

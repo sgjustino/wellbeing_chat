@@ -131,10 +131,19 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
             This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
 
-    send_button.click(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
-    user_input.submit(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
+    def handle_evaluation(chat_history):
+        formatted_output, follow_up_question = eval_fn(chat_history)
+        eval_output.update(value=f"<p>{formatted_output}</p>")
+        return follow_up_question
+
+    def update_chat(user_input, chat_history):
+        next_question = handle_evaluation(chat_history)
+        return chat_fn(user_input, chat_history, next_question)
+
+    send_button.click(update_chat, inputs=[user_input, chatbot], outputs=chatbot)
+    user_input.submit(update_chat, inputs=[user_input, chatbot], outputs=chatbot)
     user_input.submit(reset_textbox, [], [user_input])
-    eval_button.click(eval_fn, inputs=[chatbot], outputs=eval_output)
+    eval_button.click(lambda chat_history: eval_fn(chat_history)[0], inputs=[chatbot], outputs=eval_output)
 
 # Launch the Gradio app
 interface.launch(share=False)

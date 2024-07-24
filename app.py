@@ -79,7 +79,7 @@ def eval_fn(chat_history):
     
     # Format the output with HTML for better visual separation
     formatted_output = """
-    <div>
+    <div style="text-align:left;">
         <strong>Potential Issues:</strong> {}<br><br>
         <strong>Likely Causes:</strong> {}<br><br>
         <strong>Follow-up Question:</strong> {}

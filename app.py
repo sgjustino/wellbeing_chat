@@ -50,11 +50,11 @@ def eval_fn(chat_history):
         {
             "role": "system",
             "content": """You are a trained psychologist named Cora. Analyze the following conversation and provide a brief mental health analysis. 
-            Format your response exactly as follows:
+            Format your response EXACTLY as follows, with NO repetition:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Follow-up Question: [One single brief follow-up question to assist in the mental health analysis]
-            Keep each section brief and concise. Provide only ONE brief and concise follow-up question."""
+            Follow-up Question: [ONE single brief follow-up question to assist in the mental health analysis. Do not repeat this question.]
+            Keep each section brief and concise. Provide only ONE brief and concise follow-up question without any repetition."""
         }
     ]
     
@@ -94,7 +94,7 @@ def eval_fn(chat_history):
     # Format the output
     formatted_output = "Potential Issues: {} | Likely Causes: {} | Follow-up Question: {}".format(
         potential_issues.group(1).strip() if potential_issues else "N/A",
-        likely_causes.group(1).strip() if likely_cases else "N/A",
+        likely_causes.group(1).strip() if likely_causes else "N/A", 
         follow_up_text
     )
     return formatted_output, follow_up_text

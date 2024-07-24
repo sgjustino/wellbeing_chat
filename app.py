@@ -119,9 +119,9 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
 ## **About Averie and Cora**
 This is a proof-of-concept project demonstrating how two LLMs, both based on the LLaMA 3 7B model via the Groq.com API, can work together. One acts as a wellbeing chatbot designed to provide supportive conversations, and the other analyzes these interactions as a separate entity to identify potential issues, likely causes, and suggest follow-up questions to improve the conversations.
 
-- **Averie**: A friendly wellbeing chatbot designed to provide supportive conversations. Averie aims to offer helpful and cheerful responses to improve well-being until professional help can be sought. She is always ready to listen and provide comfort.
+- **Averie**: A friendly wellbeing chatbot designed to provide supportive conversations. Averie aims to offer helpful and cheerful responses to improve well-being until professional help can be sought. 
 
-- **Cora**: An LLM used to analyze the interactions between Averie and users. Cora identifies potential issues, likely causes, and provides follow-up questions for Averie to check on, helping to improve the overall conversation quality. Both are based on the LLaMA 3 7B model via the Groq.com API.
+- **Cora**: An LLM used to analyze the interactions between Averie and users. Cora identifies potential issues, likely causes, and provides follow-up questions for Averie to check on, helping to improve the overall conversation quality.
 
 ## Subsequent Improvement
 While this is an MVP, future development could make significant strides to ensure its effectiveness in real-life settings:

@@ -3,14 +3,15 @@ import os
 import spaces
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 from threading import Thread
+import torch
 
 # Load chatbot model
 chat_tokenizer = AutoTokenizer.from_pretrained("Sgjustino/futaro_chat")
-chat_model = AutoModelForCausalLM.from_pretrained("Sgjustino/futaro_chat", device_map="auto")
+chat_model = AutoModelForCausalLM.from_pretrained("Sgjustino/futaro_chat")
 
 # Load evaluation model
 eval_tokenizer = AutoTokenizer.from_pretrained("klyang/MentaLLaMA-chat-7B")
-eval_model = AutoModelForCausalLM.from_pretrained("klyang/MentaLLaMA-chat-7B", device_map="auto")
+eval_model = AutoModelForCausalLM.from_pretrained("klyang/MentaLLaMA-chat-7B")
 
 # System prompts
 chat_system_prompt = """
@@ -29,9 +30,10 @@ Only output accordingly to the format, keep it concise and clear and do not outp
 
 MAX_INPUT_TOKEN_LENGTH = 4096
 
-@spaces.GPU(duration=120)
+@spaces.GPU
 def generate_response(model, tokenizer, prompt, max_new_tokens=500, temperature=0.7):
-    input_ids = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=MAX_INPUT_TOKEN_LENGTH).input_ids.to(model.device)
+    input_ids = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=MAX_INPUT_TOKEN_LENGTH).input_ids.to('cuda')
+    model.to('cuda')
     
     streamer = TextIteratorStreamer(tokenizer, timeout=10.0, skip_prompt=True, skip_special_tokens=True)
     

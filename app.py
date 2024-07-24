@@ -7,11 +7,12 @@ from groq import Groq
 # Create the Groq client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-def chat_fn(user_input, chat_history):
+def chat_fn(user_input, chat_history, next_question=""):
     messages = [
         {
             "role": "system",
-            "content": "You are a helpful assistant named Averie. You are a mental health assistant who provides supportive conversations. You reply with helpful and cheerful responses."
+            "content": f"""You are a helpful assistant named Averie. You are a mental health assistant who provides supportive conversations. 
+            You reply with helpful and cheerful responses. If provided, incorporate the following question into your response: {next_question}"""
         }
     ]
     
@@ -51,7 +52,7 @@ def eval_fn(chat_history):
             Format your response exactly as follows:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Next Steps: [List steps here, separated by commas]
+            Next Question: [One important follow-up question to assist in the mental health analysis]
             Keep each section brief and concise."""
         }
     ]
@@ -74,17 +75,17 @@ def eval_fn(chat_history):
 
     # Use regex to extract the sections
     potential_issues = re.search(r'Potential Issues:(.*?)(?:Likely Causes:|$)', content, re.DOTALL)
-    likely_causes = re.search(r'Likely Causes:(.*?)(?:Next Steps:|$)', content, re.DOTALL)
-    next_steps = re.search(r'Next Steps:(.*?)$', content, re.DOTALL)
+    likely_causes = re.search(r'Likely Causes:(.*?)(?:Next Question:|$)', content, re.DOTALL)
+    next_question = re.search(r'Next Question:(.*?)$', content, re.DOTALL)
 
     # Format the output
-    formatted_output = "Potential Issues: {} | Likely Causes: {} | Next Steps: {}".format(
+    formatted_output = "Potential Issues: {} | Likely Causes: {} | Next Question: {}".format(
         potential_issues.group(1).strip() if potential_issues else "N/A",
         likely_causes.group(1).strip() if likely_causes else "N/A",
-        next_steps.group(1).strip() if next_steps else "N/A"
+        next_question.group(1).strip() if next_question else "N/A"
     )
 
-    return formatted_output
+    return formatted_output, next_question.group(1).strip() if next_question else ""
 
 def reset_textbox():
     return gr.update(value='')

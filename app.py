@@ -46,7 +46,6 @@ def chat_fn(user_input, chat_history, next_question=""):
     return chat_history
 
 def eval_fn(chat_history):
-    
     messages = [
         {
             "role": "system",
@@ -63,7 +62,7 @@ def eval_fn(chat_history):
     for user_msg, assistant_msg in chat_history:
         messages.append({"role": "user", "content": user_msg})
         messages.append({"role": "assistant", "content": assistant_msg})
-        
+    
     response = client.chat.completions.create(
         messages=messages,
         model="llama3-70b-8192",
@@ -73,12 +72,14 @@ def eval_fn(chat_history):
         stream=False,
     )
     content = response.choices[0].message.content
+    
     # Use regex to extract the sections
     potential_issues = re.search(r'Potential Issues:(.*?)(?:Likely Causes:|$)', content, re.DOTALL)
-    likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up for Conversation:|$)', content, re.DOTALL)
+    likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Question:|$)', content, re.DOTALL)
     follow_up = re.search(r'Follow-up Question:(.*?)$', content, re.DOTALL)
+    
     # Format the output
-    formatted_output = "Potential Issues: {} | Likely Causes: {} | Follow-up for Conversation: {}".format(
+    formatted_output = "Potential Issues: {} | Likely Causes: {} | Follow-up Question: {}".format(
         potential_issues.group(1).strip() if potential_issues else "N/A",
         likely_causes.group(1).strip() if likely_causes else "N/A",
         follow_up.group(1).strip() if follow_up else "N/A"

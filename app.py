@@ -53,8 +53,8 @@ def eval_fn(chat_history):
             Format your response exactly as follows:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Follow-up Question: [1 follow-up question to assist in the mental health analysis. Do not ask more than 1 question]
-            Keep each section brief and concise. Ensure you provide only 1 follow-up question."""
+            Follow-up Question: [One single brief follow-up question to assist in the mental health analysis]
+            Keep each section brief and concise. Provide only ONE brief and concise follow-up question."""
         }
     ]
     
@@ -78,13 +78,23 @@ def eval_fn(chat_history):
     likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Question:|$)', content, re.DOTALL)
     follow_up = re.search(r'Follow-up Question:(.*?)$', content, re.DOTALL)
     
+    # Process the follow-up question to remove repetition
+    if follow_up:
+        follow_up_text = follow_up.group(1).strip()
+        # Split by comma and take the first part to remove repetition
+        follow_up_text = follow_up_text.split(',')[0].strip()
+        # Remove trailing question mark if present
+        follow_up_text = follow_up_text.rstrip('?') + '?'
+    else:
+        follow_up_text = "N/A"
+    
     # Format the output
     formatted_output = "Potential Issues: {} | Likely Causes: {} | Follow-up Question: {}".format(
         potential_issues.group(1).strip() if potential_issues else "N/A",
         likely_causes.group(1).strip() if likely_causes else "N/A",
-        follow_up.group(1).strip() if follow_up else "N/A"
+        follow_up_text
     )
-    return formatted_output, follow_up.group(1).strip() if follow_up else ""
+    return formatted_output, follow_up_text
 
 def reset_textbox():
     return gr.update(value='')

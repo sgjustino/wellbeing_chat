@@ -106,18 +106,16 @@ function refresh() {
 """
 
 title = "A Project on Integrating a Wellbeing Chatbot with an Analytical LLM for Conversation Insights"
-description = "This project showcases a proof-of-concept where two LLMs work together: Averie, a friendly wellbeing chatbot, assists users by providing supportive conversations, while Cora, a separate LLM, analyzes the conversations to identify potential issues, likely causes, and suggest follow-up questions to improve the interactions."
 
 with gr.Blocks(css="style.css", js=light_mode_js) as interface:
     gr.Markdown(f"# {title}")
-    gr.Markdown(description)
-    
+
     with gr.Tabs():
 
         with gr.TabItem("About"):
             gr.Markdown("""
-## **About Averie and Cora**
-Both LLMs are based on the LLaMA 3 7B model via the Groq.com API. Averie acts as a wellbeing chatbot designed to provide supportive conversations while Cora analyzes these interactions as a separate entity to identify potential issues, likely causes, and suggest follow-up questions to improve the conversations.
+## **Background**
+This project showcases a proof-of-concept where two LLMs work together: Averie, a friendly wellbeing chatbot, assists users by providing supportive conversations, while Cora, a separate LLM, analyzes the conversations to identify potential issues, likely causes, and suggest follow-up questions to improve the interactions. Both LLMs are based on the LLaMA 3 7B model via the Groq.com API. 
 
 ## Subsequent Improvement
 While this is an MVP, future development could make significant strides to ensure its effectiveness in real-life settings:

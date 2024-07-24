@@ -119,23 +119,18 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
 ## **About Averie and Cora**
 This is a proof-of-concept project demonstrating how two LLMs, both based on the LLaMA 3 7B model via the Groq.com API, can work together. One acts as a wellbeing chatbot designed to provide supportive conversations, and the other analyzes these interactions as a separate entity to identify potential issues, likely causes, and suggest follow-up questions to improve the conversations.
 
-### **Averie**
-Averie is your friendly wellbeing chatbot designed to provide supportive conversations. She aims to offer helpful and cheerful responses to improve well-being until professional help can be sought. Averie is always ready to listen and provide comfort.
+- **Averie**: A friendly wellbeing chatbot designed to provide supportive conversations. Averie aims to offer helpful and cheerful responses to improve well-being until professional help can be sought. She is always ready to listen and provide comfort.
 
-### **Cora**
-Cora is an LLM used to analyze the interactions between Averie and users. She identifies potential issues, likely causes, and provides follow-up questions for Averie to check on, helping to improve the overall conversation quality.
+- **Cora**: An LLM used to analyze the interactions between Averie and users. Cora identifies potential issues, likely causes, and provides follow-up questions for Averie to check on, helping to improve the overall conversation quality. Both are based on the LLaMA 3 7B model via the Groq.com API.
 
 ## Subsequent Improvement
 While this is an MVP, future development could make significant strides to ensure its effectiveness in real-life settings:
 
-1) **Training and Fine-tuning with Real-life Therapy Transcripts:**
-   To ensure that a wellbeing chatbot like Averie engages users as a qualified psychologist would, it is crucial to train and fine-tune the LLM with transcripts from real-life therapy sessions conducted by qualified psychologists. Post-training, there should also be validation tests to ensure that the chatbot's responses match the standards and quality suitable for deployment. This rigorous process will help the chatbot to better understand and respond to users' needs accurately.
+1) **Training and Fine-tuning with Real-life Therapy Transcripts**: To ensure that Averie engages users as a qualified psychologist would, it is crucial to train and fine-tune the LLM with transcripts from real-life therapy sessions conducted by qualified psychologists. Post-training, validation tests should be conducted to ensure the chatbot's responses meet the standards and quality suitable for deployment.
 
-2) **Integrating Validated Mental Health Questionnaires:**
-   For the mental health analysis, incorporating validated mental health questionnaires into the LLM can enable the system to use real and valid questions to identify issues and concerns. Examples of such questionnaires include the Patient Health Questionnaire-9 (PHQ-9) for depression and the Generalized Anxiety Disorder 7 (GAD-7) for anxiety. This approach can also guide the chatbot to intuitively ask relevant questions, determining if there is a need to escalate the situation. A good example is MentaLLaMA from the [Interpretable Mental Health Instruction (IMHI)](https://arxiv.org/abs/2309.13567) paper. This paper discusses the creation of the IMHI dataset with 105K instruction samples, which allows for interpretable mental health analysis on social media. MentaLLaMA can perform mental health analysis and generate high-quality explanations for its predictions, based on the IMHI dataset and LLaMA2 foundation models.
+2) **Integrating Validated Mental Health Questionnaires**: Incorporating validated mental health questionnaires (e.g. PHQ-9 and GAD-7)) into the LLM can enable the system to prompt relevant questions to identify issues and concerns or determine if there is a need to escalate the situation. The MentaLLaMA project from the [Interpretable Mental Health Instruction (IMHI)](https://arxiv.org/abs/2309.13567) paper is an example of this approach, enabling interpretable mental health analysis on social media.
 
-3) **Ensuring Adherence to Medical Protocols:**
-   It is essential that the system prompt follows a medical protocol that escalates the situation immediately if the user appears to be harming themselves. The system prompt should be structured to request intervention from professionals promptly if the conversation suggests such a need. These instructions should be embedded within the mental health analysis LLM (Cora) to ensure that appropriate and timely actions are taken.
+3) **Ensuring Adherence to Medical Protocols**: It is essential that the system follows a medical protocol that escalates the situation if the user appears to be harming themselves or require immediate medical attention. These instructions should be embedded within the mental health analysis LLM (Cora) to ensure appropriate and timely actions are taken.
 
 ## **Disclaimer**
 This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.

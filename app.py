@@ -66,21 +66,55 @@ def eval_fn(chat_history):
 
     return cleaned_response
 
-# Gradio interface setup
-with gr.Blocks() as interface:
+def reset_textbox():
+    return gr.update(value='')
+
+light_mode_js = """
+function refresh() {
+    const url = new URL(window.location);
+    if (url.searchParams.get('__theme') !== 'light') {
+        url.searchParams.set('__theme', 'light');
+        window.location.href = url.href;
+    }
+}
+"""
+
+title = "Chat with Averie and Evaluation by Cora"
+description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
+
+with gr.Blocks(css="style.css", js=light_mode_js) as interface:
+    gr.Markdown(f"# {title}")
+    gr.Markdown(description)
+    
     with gr.Tabs():
-        with gr.TabItem("Chat"):
-            chatbot = gr.Chatbot()
-            msg = gr.Textbox()
-            clear = gr.Button("Clear")
+        with gr.TabItem("Chat", elem_id="chat-tab"):
+            with gr.Row():
+                with gr.Column(elem_id="left-pane", scale=1):
+                    gr.Markdown("### Chat with Averie")
+                    chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
+                    user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
+                    state = gr.State([])
+                    
+                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True)
+                    user_input.submit(reset_textbox, [], [user_input])
+                    
+                with gr.Column(elem_id="right-pane", scale=1):
+                    gr.Markdown("### Evaluation by Cora")
+                    eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
+                    eval_button = gr.Button("Evaluate Chat")
+                    
+                    eval_button.click(eval_fn, [chatbot], [eval_output])
 
-        with gr.TabItem("Evaluation"):
-            eval_output = gr.Textbox()
-            eval_button = gr.Button("Evaluate Chat")
-
-    msg.submit(chat_fn, [msg, chatbot], [chatbot])
-    clear.click(lambda: None, None, chatbot, queue=False)
-    eval_button.click(eval_fn, [chatbot], [eval_output])
+        with gr.TabItem("About"):
+            gr.Markdown("""
+            ## About Averie and Cora
+            ### Averie
+            Averie is your friendly mental health assistant designed to provide supportive conversations. She aims to offer helpful and cheerful responses to improve mental well-being until professional help can be sought. Averie is always ready to listen and provide comfort.
+            ### Cora
+            Cora is a trained psychologist who evaluates the interactions between Averie and users. She conducts mental health analyses to identify potential issues and likely reasons. Cora provides insights based on the conversations to ensure users receive the best possible support and guidance.
+            ## Disclaimer 
+            This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
+            """)
 
 # Launch the Gradio app
-interface.launch()
+interface.launch(share=False)

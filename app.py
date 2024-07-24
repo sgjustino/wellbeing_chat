@@ -1,4 +1,3 @@
-import os
 import json
 import gradio as gr
 import re
@@ -134,7 +133,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
     send_button.click(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
     user_input.submit(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
     user_input.submit(reset_textbox, [], [user_input])
-    eval_button.click(eval_fn, inputs=[chatbot], outputs=[eval_output, None])
+    eval_button.click(eval_fn, inputs=[chatbot], outputs=eval_output)
 
 # Launch the Gradio app
 interface.launch(share=False)

@@ -1,9 +1,17 @@
 import os
+import json
+from typing import List, Optional
+from pydantic import BaseModel
 import gradio as gr
 from groq import Groq
 
 # Create the Groq client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+class EvaluationResult(BaseModel):
+    potential_issues: List[str]
+    likely_causes: List[str]
+    next_steps: List[str]
 
 def chat_fn(user_input, chat_history):
     messages = [
@@ -35,6 +43,8 @@ def chat_fn(user_input, chat_history):
         if chunk.choices[0].delta.content is not None:
             assistant_message += chunk.choices[0].delta.content
             yield chat_history + [(user_input, assistant_message)]
+        else:
+            yield chat_history + [(user_input, assistant_message)]
 
     chat_history.append((user_input, assistant_message))
     return chat_history
@@ -43,7 +53,10 @@ def eval_fn(chat_history):
     messages = [
         {
             "role": "system",
-            "content": "You are a trained psychologist named Cora. Analyze the following conversation and provide a brief mental health analysis. Format the output as: Potential Issues: XXX | Likely Causes: XXX | Next steps: XXX."
+            "content": f"""You are a trained psychologist named Cora. Analyze the following conversation and provide a brief mental health analysis. 
+            Output the analysis in JSON format using the following schema:
+            {json.dumps(EvaluationResult.model_json_schema(), indent=2)}
+            Each field should contain a list of brief, concise points."""
         }
     ]
     
@@ -52,26 +65,27 @@ def eval_fn(chat_history):
         messages.append({"role": "user", "content": user_msg})
         messages.append({"role": "assistant", "content": assistant_msg})
 
-    stream = client.chat.completions.create(
+    response = client.chat.completions.create(
         messages=messages,
         model="llama3-8b-8192",
         temperature=0.5,
         max_tokens=1024,
         top_p=1,
-        stream=True,
+        stream=False,
+        response_format={"type": "json_object"},
     )
 
-    evaluation = ""
-    for chunk in stream:
-        if chunk.choices[0].delta.content is not None:
-            evaluation += chunk.choices[0].delta.content
-            yield evaluation
-
-    # Ensure the output follows the specified format
-    formatted_output = "Potential Issues: | Likely Causes: | Next steps:"
-    parts = evaluation.split("|")
-    if len(parts) == 3:
-        formatted_output = f"Potential Issues: {parts[0].split(':')[-1].strip()} | Likely Causes: {parts[1].split(':')[-1].strip()} | Next steps: {parts[2].split(':')[-1].strip()}"
+    try:
+        evaluation = EvaluationResult.model_validate_json(response.choices[0].message.content)
+        
+        formatted_output = (
+            f"Potential Issues: {', '.join(evaluation.potential_issues)} | "
+            f"Likely Causes: {', '.join(evaluation.likely_causes)} | "
+            f"Next steps: {', '.join(evaluation.next_steps)}"
+        )
+    except Exception as e:
+        print(f"Error parsing JSON: {e}")
+        formatted_output = "Error in evaluation. Please try again."
 
     return formatted_output
 

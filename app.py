@@ -39,52 +39,29 @@ def chat_fn(user_input, chat_history):
     chat_prompt = "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history]) + f"\nUser: {user_input}\nAverie: "
     response = generate_response(chat_prompt, chat_system_prompt)
     chat_history.append((user_input, response))
-    return chat_history, chat_history
+    return chat_history
 
 def eval_fn(chat_history):
     eval_prompt = " ".join([f"User: {h[0]} Averie: {h[1]}" for h in chat_history])
     eval_response = generate_response(eval_prompt, eval_system_prompt)
-    
     return eval_response
-
-def reset_textbox():
-    return gr.update(value='')
-
-light_mode_js = """
-function refresh() {
-    const url = new URL(window.location);
-    if (url.searchParams.get('__theme') !== 'light') {
-        url.searchParams.set('__theme', 'light');
-        window.location.href = url.href;
-    }
-}
-"""
 
 title = "Chat with Averie and Evaluation by Cora"
 description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
 
-with gr.Blocks(css="style.css", js=light_mode_js) as interface:
+with gr.Blocks() as interface:
     gr.Markdown(f"# {title}")
     gr.Markdown(description)
     
     with gr.Tabs():
-        with gr.TabItem("Chat", elem_id="chat-tab"):
-            with gr.Row():
-                with gr.Column(elem_id="left-pane", scale=1):
-                    gr.Markdown("### Chat with Averie")
-                    chatbot = gr.Chatbot(placeholder="Hi, I am Averie. How are you today?", elem_id='chatbot')
-                    user_input = gr.Textbox(placeholder="Type a message and press enter", label="Your message")
-                    state = gr.State([])
-                    
-                    user_input.submit(chat_fn, [user_input, state], [chatbot, state], queue=True)
-                    user_input.submit(reset_textbox, [], [user_input])
-                    
-                with gr.Column(elem_id="right-pane", scale=1):
-                    gr.Markdown("### Evaluation by Cora")
-                    eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
-                    eval_button = gr.Button("Evaluate Chat")
-                    
-                    eval_button.click(eval_fn, [chatbot], [eval_output])
+        with gr.TabItem("Chat"):
+            chatbot = gr.Chatbot(label="Chat with Averie")
+            user_input = gr.Textbox(label="Your message")
+            send_button = gr.Button("Send")
+
+        with gr.TabItem("Evaluation"):
+            eval_output = gr.Textbox(label="Evaluation by Cora")
+            eval_button = gr.Button("Evaluate Chat")
 
         with gr.TabItem("About"):
             gr.Markdown("""
@@ -97,5 +74,8 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
             This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
 
+    send_button.click(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
+    eval_button.click(eval_fn, inputs=[chatbot], outputs=eval_output)
+
 # Launch the Gradio app
-interface.launch(share=False)
+interface.launch()

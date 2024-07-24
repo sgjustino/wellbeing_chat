@@ -7,12 +7,12 @@ from groq import Groq
 # Create the Groq client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-def chat_fn(user_input, chat_history, next_question=""):
+def chat_fn(user_input, chat_history, follow_up_question=""):
     messages = [
         {
             "role": "system",
             "content": f"""You are Averie, a supportive mental health assistant. Respond in a friendly, conversational manner. 
-            Keep your responses brief, ideally 2-3 sentences. If provided, incorporate this question naturally: {next_question}
+            Keep your responses brief, ideally 2-3 sentences. If provided, incorporate this question naturally: {follow_up_question}
             Focus on one main point or question at a time. Be empathetic but not overly wordy."""
         }
     ]
@@ -117,6 +117,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                 with gr.Column(elem_id="right-pane", scale=1):
                     gr.Markdown("### Evaluation by Cora")
                     eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
+                    follow_up_input = gr.Textbox(label="Follow-up Question for Averie", interactive=False)
                     eval_button = gr.Button("Evaluate Chat")
 
         with gr.TabItem("About"):
@@ -130,10 +131,10 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
             This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
             """)
 
-    send_button.click(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
-    user_input.submit(chat_fn, inputs=[user_input, chatbot], outputs=chatbot)
+    send_button.click(chat_fn, inputs=[user_input, chatbot, follow_up_input], outputs=chatbot)
+    user_input.submit(chat_fn, inputs=[user_input, chatbot, follow_up_input], outputs=chatbot)
     user_input.submit(reset_textbox, [], [user_input])
-    eval_button.click(eval_fn, inputs=[chatbot], outputs=eval_output)
+    eval_button.click(eval_fn, inputs=[chatbot], outputs=[eval_output, follow_up_input])
 
 # Launch the Gradio app
 interface.launch(share=False)

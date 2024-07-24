@@ -1,57 +1,62 @@
-import gradio as gr
 import os
+import gradio as gr
 from groq import Groq
 
 # Create the Groq client
-client = Groq(api_key=os.environ.get("groq_api"))
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# System prompts
-chat_system_prompt = """
-You are a helpful and joyous mental therapy assistant named Averie. Always answer as helpfully and cheerfully as possible, while being safe. 
-Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses 
-are socially unbiased and positive in nature. Chat as you would in a natural, friendly conversation. Avoid using bullet points or overly long 
-responses. Keep your replies concise and engaging, similar to how you would speak with a friend.
-"""
+# Set the system prompt
+system_prompt = {
+    "role": "system",
+    "content": "You are a helpful assistant named Averie. You are a mental health assistant who provides supportive conversations. You reply with helpful and cheerful responses."
+}
 
-eval_system_prompt = """
-You are a trained psychologist named Cora who is examining the interaction between a mental health assistant and someone who is troubled. 
-Always look at their answers and conduct a mental health analysis to identify potential issues and likely reasons. 
-Format the output as:\nPotential Issues: XXX \nLikely Causes: XXX \nNext steps: XXX.
-Only output accordingly to the format, keep it concise and clear and do not output anything extra.
-"""
+# Initialize the chat history
+chat_history = [system_prompt]
 
-def generate_response(prompt, system_prompt, max_tokens=500, temperature=0.7):
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt}
-    ]
+def chat_fn(user_input, history):
+    # Append the user input to the chat history
+    chat_history.append({"role": "user", "content": user_input})
     
     response = client.chat.completions.create(
         model="llama3-8b-8192",
-        messages=messages,
-        max_tokens=max_tokens,
-        temperature=temperature
+        messages=chat_history,
+        max_tokens=100,
+        temperature=0.7
+    )
+    
+    # Append the response to the chat history
+    assistant_message = response.choices[0].message.content
+    chat_history.append({
+        "role": "assistant",
+        "content": assistant_message
+    })
+    
+    # Update the visible chat history for Gradio
+    history.append((user_input, assistant_message))
+    return history
+
+def eval_fn(history):
+    eval_prompt = {
+        "role": "system",
+        "content": "You are a trained psychologist named Cora. Analyze the following conversation and provide a brief mental health analysis. Format the output as: Potential Issues: XXX | Likely Causes: XXX | Next steps: XXX."
+    }
+    
+    eval_messages = [eval_prompt] + [{"role": "user" if i % 2 == 0 else "assistant", "content": msg} for i, msg in enumerate(sum(history, ()))]
+    
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=eval_messages,
+        max_tokens=200,
+        temperature=0.5
     )
     
     return response.choices[0].message.content
 
-def chat_fn(user_input, chat_history):
-    chat_prompt = "\n".join([f"User: {h[0]}\nAverie: {h[1]}" for h in chat_history]) + f"\nUser: {user_input}\nAverie: "
-    response = generate_response(chat_prompt, chat_system_prompt)
-    chat_history.append((user_input, response))
-    return chat_history
-
-def eval_fn(chat_history):
-    eval_prompt = " ".join([f"User: {h[0]} Averie: {h[1]}" for h in chat_history])
-    eval_response = generate_response(eval_prompt, eval_system_prompt)
-    return eval_response
-
-title = "Chat with Averie and Evaluation by Cora"
-description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
-
+# Gradio interface
 with gr.Blocks() as interface:
-    gr.Markdown(f"# {title}")
-    gr.Markdown(description)
+    gr.Markdown("# Chat with Averie and Evaluation by Cora")
+    gr.Markdown("A friendly mental health assistant chatbot and its evaluation by a trained psychologist.")
     
     with gr.Tabs():
         with gr.TabItem("Chat"):

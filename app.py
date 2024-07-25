@@ -46,7 +46,7 @@ def chat_fn(user_input, chat_history, follow_up_question=""):
     return chat_history
 
 def eval_fn(chat_history):
-    max_history_length = 10  # Maximum number of user-assistant pairs to keep in history
+    max_history_length = 3  # Maximum number of user-assistant pairs to keep in history
     if len(chat_history) > max_history_length:
         chat_history = chat_history[-max_history_length:]
 

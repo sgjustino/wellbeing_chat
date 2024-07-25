@@ -57,7 +57,7 @@ def eval_fn(chat_history):
             Format your response EXACTLY as follows and keep each section brief and concise:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Follow-up Question: [One single follow-up question to assist in the mental health analysis]"""
+            Follow-up Queries: [List follow-up queries to assist in the mental health analysis]"""
         }
     ]
     
@@ -79,13 +79,13 @@ def eval_fn(chat_history):
     # Use regex to extract the sections
     potential_issues = re.search(r'Potential Issues:(.*?)(?:Likely Causes:|$)', content, re.DOTALL)
     likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Question:|$)', content, re.DOTALL)
-    follow_up = re.search(r'Follow-up Question:(.*?)$', content, re.DOTALL)
+    follow_up = re.search(r'Follow-up Queries:(.*?)$', content, re.DOTALL)
     
     formatted_output = """
     <div style="text-align:left;">
         <p style="margin: 0;"><strong>Potential Issues:</strong> {}</p>
         <p style="margin: 0;"><strong>Likely Causes:</strong> {}</p>
-        <p style="margin: 0;"><strong>Follow-up Question:</strong> {}</p>
+        <p style="margin: 0;"><strong>Follow-up Queries:</strong> {}</p>
     </div>
     """.format(
         potential_issues.group(1).strip() if potential_issues else "N/A",
@@ -122,7 +122,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
         with gr.TabItem("About"):
             gr.Markdown("""
 ## **Background**
-This project showcases a proof-of-concept where two LLMs work together: Averie, a friendly wellbeing chatbot, assists users by providing supportive conversations, while Cora, a separate LLM, analyzes the conversations to identify potential issues, likely causes, and suggest follow-up questions to improve the interactions. Both LLMs are based on the LLaMA 3 7B model via the Groq.com API. 
+This project showcases a proof-of-concept where two LLMs work together: Averie, a friendly wellbeing chatbot, assists users by providing supportive conversations, while Cora, a separate LLM, analyzes the conversations to identify potential issues, likely causes, and suggest follow-up queries to improve the interactions. Both LLMs are based on the LLaMA 3 7B model via the Groq.com API. 
 
 ## Areas to Improve for Actual Deployment
 1) **Training and Fine-tuning with Real-life Therapy Transcripts**: To ensure that Averie engages users as a qualified psychologist would, it is crucial to train and fine-tune the LLM with transcripts from real-life therapy sessions conducted by qualified psychologists. Post-training, validation tests should be conducted to ensure the chatbot's responses meet the standards and quality suitable for deployment.

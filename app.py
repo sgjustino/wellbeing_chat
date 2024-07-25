@@ -79,7 +79,7 @@ def eval_fn(chat_history):
     
     # Use regex to extract the sections
     potential_issues = re.search(r'Potential Issues:(.*?)(?:Likely Causes:|$)', content, re.DOTALL)
-    likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Question:|$)', content, re.DOTALL)
+    likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Areas:|$)', content, re.DOTALL)
     follow_up = re.search(r'Follow-up Areas:(.*?)$', content, re.DOTALL)
     
     formatted_output = """

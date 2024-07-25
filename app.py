@@ -27,7 +27,7 @@ def chat_fn(user_input, chat_history, follow_up_question=""):
 
     stream = client.chat.completions.create(
         messages=messages,
-        model="llama3-8b-8192",
+        model="llama3-70b-8192",
         temperature=0.7,
         max_tokens=500,
         top_p=1,
@@ -46,7 +46,7 @@ def chat_fn(user_input, chat_history, follow_up_question=""):
     return chat_history
 
 def eval_fn(chat_history):
-    max_history_length = 3  # Maximum number of user-assistant pairs to keep in history
+    max_history_length = 5  # Maximum number of user-assistant pairs to keep in history
     if len(chat_history) > max_history_length:
         chat_history = chat_history[-max_history_length:]
 
@@ -68,9 +68,9 @@ def eval_fn(chat_history):
     
     response = client.chat.completions.create(
         messages=messages,
-        model="llama3-8b-8192",
+        model="mixtral-8x7b-32768",
         temperature=0.5,
-        max_tokens=8000,
+        max_tokens=600,
         top_p=1,
         stream=False,
     )

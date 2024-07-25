@@ -57,7 +57,8 @@ def eval_fn(chat_history):
             Format your response EXACTLY as follows and keep each section brief and concise:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Follow-up Queries: [Briefly and concisely explain areas to focus on to assist in the mental health analysis]"""
+            Follow-up Areas: [In 1 sentence, briefly and concisely explain areas to focus on to assist in the mental health analysis]
+            """
         }
     ]
     
@@ -79,13 +80,13 @@ def eval_fn(chat_history):
     # Use regex to extract the sections
     potential_issues = re.search(r'Potential Issues:(.*?)(?:Likely Causes:|$)', content, re.DOTALL)
     likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Question:|$)', content, re.DOTALL)
-    follow_up = re.search(r'Follow-up Queries:(.*?)$', content, re.DOTALL)
+    follow_up = re.search(r'Follow-up Areas:(.*?)$', content, re.DOTALL)
     
     formatted_output = """
     <div style="text-align:left;">
         <p style="margin: 0;"><strong>Potential Issues:</strong> {}</p>
         <p style="margin: 0;"><strong>Likely Causes:</strong> {}</p>
-        <p style="margin: 0;"><strong>Follow-up Queries:</strong> {}</p>
+        <p style="margin: 0;"><strong>Follow-up Areas:</strong> {}</p>
     </div>
     """.format(
         potential_issues.group(1).strip() if potential_issues else "N/A",

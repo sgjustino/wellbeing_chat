@@ -1,12 +1,3 @@
----
-title: Well Being Chat
-emoji: 💬
-colorFrom: yellow
-colorTo: purple
-sdk: gradio
-app_file: app.py
-pinned: false
-license: mit
----
+# An MVP Project to Integrate a Wellbeing Chatbot with a Conversation Analysis LLM for Counselling Insights
 
-An example chatbot using [Gradio](https://gradio.app), [`huggingface_hub`](https://huggingface.co/docs/huggingface_hub/v0.22.2/en/index), and the [Hugging Face Inference API](https://huggingface.co/docs/api-inference/index).
+This project showcases a proof-of-concept where two LLMs work together: Averie, a friendly wellbeing chatbot, assists users by providing supportive conversations, while Cora, a separate LLM, analyzes the conversations to identify potential issues, likely causes, and suggest follow-up queries to improve the interactions. Both LLMs are based on the LLaMA 3 7B model via the Groq.com API. 

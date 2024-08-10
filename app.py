@@ -5,7 +5,8 @@ import re
 from groq import Groq
 
 # Create the Groq client
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+api_key = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=api_key)
 
 def chat_fn(user_input, chat_history, follow_up_question=""):
     messages = [
@@ -27,9 +28,9 @@ def chat_fn(user_input, chat_history, follow_up_question=""):
 
     stream = client.chat.completions.create(
         messages=messages,
-        model="llama3-70b-8192",
+        model="llama3-8b-8192",
         temperature=0.7,
-        max_tokens=1024,
+        max_tokens=500,
         top_p=1,
         stream=True,
     )
@@ -46,6 +47,10 @@ def chat_fn(user_input, chat_history, follow_up_question=""):
     return chat_history
 
 def eval_fn(chat_history):
+    max_history_length = 5  # Maximum number of user-assistant pairs to keep in history
+    if len(chat_history) > max_history_length:
+        chat_history = chat_history[-max_history_length:]
+
     messages = [
         {
             "role": "system",
@@ -53,7 +58,8 @@ def eval_fn(chat_history):
             Format your response EXACTLY as follows and keep each section brief and concise:
             Potential Issues: [List issues here, separated by commas]
             Likely Causes: [List causes here, separated by commas]
-            Follow-up Question: [One single follow-up question to assist in the mental health analysis]"""
+            Follow-up Areas: [List follow-up queries very concisely in a few words to assist in the mental health analysis]
+            """
         }
     ]
     
@@ -64,9 +70,9 @@ def eval_fn(chat_history):
     
     response = client.chat.completions.create(
         messages=messages,
-        model="llama3-70b-8192",
+        model="mixtral-8x7b-32768",
         temperature=0.5,
-        max_tokens=500,
+        max_tokens=600,
         top_p=1,
         stream=False,
     )
@@ -74,14 +80,14 @@ def eval_fn(chat_history):
     
     # Use regex to extract the sections
     potential_issues = re.search(r'Potential Issues:(.*?)(?:Likely Causes:|$)', content, re.DOTALL)
-    likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Question:|$)', content, re.DOTALL)
-    follow_up = re.search(r'Follow-up Question:(.*?)$', content, re.DOTALL)
+    likely_causes = re.search(r'Likely Causes:(.*?)(?:Follow-up Areas:|$)', content, re.DOTALL)
+    follow_up = re.search(r'Follow-up Areas:(.*?)$', content, re.DOTALL)
     
     formatted_output = """
     <div style="text-align:left;">
         <p style="margin: 0;"><strong>Potential Issues:</strong> {}</p>
         <p style="margin: 0;"><strong>Likely Causes:</strong> {}</p>
-        <p style="margin: 0;"><strong>Follow-up Question:</strong> {}</p>
+        <p style="margin: 0;"><strong>Follow-up Areas:</strong> {}</p>
     </div>
     """.format(
         potential_issues.group(1).strip() if potential_issues else "N/A",
@@ -90,6 +96,7 @@ def eval_fn(chat_history):
     )
     
     return formatted_output, follow_up.group(1).strip() if follow_up else "N/A"
+
 
 
 def reset_textbox():
@@ -105,14 +112,27 @@ function refresh() {
 }
 """
 
-title = "Chat with Averie and Evaluation by Cora"
-description = "A friendly mental health assistant chatbot and its evaluation by a trained psychologist."
+title = "An MVP Project to Integrate a Wellbeing Chatbot with a Conversation Analysis LLM for Counselling Insights"
+description= ""
 
 with gr.Blocks(css="style.css", js=light_mode_js) as interface:
     gr.Markdown(f"# {title}")
     gr.Markdown(description)
     
     with gr.Tabs():
+
+        with gr.TabItem("About"):
+            gr.Markdown("""
+# **Background**
+This project showcases a proof-of-concept where two LLMs work together: Averie, a friendly wellbeing chatbot, assists users by providing supportive conversations, while Cora, a separate LLM, analyzes the conversations to identify potential issues, likely causes, and suggest follow-up queries to improve the interactions. Both LLMs are based on the LLaMA 3 7B model via the Groq.com API. 
+# Areas For Improvement
+1) **Training with Actual Counselling Transcripts for Wellbeing Chatbot**: The LLMs can be fine-tuned with transcripts from real-life therapy sessions conducted by qualified psychologists. Post-training, validation tests should be conducted to ensure the chatbot's responses are rated as suitable for deployment by qualified psychologists.
+2) **Integrating Validated Mental Health Questionnaires for Conversation Analysis LLM**: Incorporating validated mental health questionnaires (e.g. PHQ-9 and GAD-7)) into the LLM can enable the system to prompt relevant questions to identify issues and concerns or determine if there is a need to escalate the situation. The MentaLLaMA project from the [Interpretable Mental Health Instruction (IMHI)](https://arxiv.org/abs/2309.13567) paper is an example of this approach, enabling interpretable mental health analysis on social media.
+3) **Ensuring Adherence to Medical Protocols**: It is essential that the system follows a medical protocol that escalates the situation if the user appears to be harming themselves or require immediate medical attention. These instructions should be embedded within the mental health analysis LLM (Cora) to ensure appropriate and timely actions are taken.
+# **Disclaimer**
+This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
+""")
+
         with gr.TabItem("Chat", elem_id="chat-tab"):
             with gr.Row():
                 with gr.Column(elem_id="left-pane", scale=1):
@@ -126,18 +146,7 @@ with gr.Blocks(css="style.css", js=light_mode_js) as interface:
                     eval_output = gr.HTML("<p>Click to evaluate the chat.</p>", elem_id="eval-output")
                     follow_up_input = gr.Textbox(label="Follow-up Question for Averie", interactive=False)
                     eval_button = gr.Button("Evaluate Chat")
-
-        with gr.TabItem("About"):
-            gr.Markdown("""
-            ## About Averie and Cora
-            ### Averie
-            Averie is your friendly mental health assistant designed to provide supportive conversations. She aims to offer helpful and cheerful responses to improve mental well-being until professional help can be sought. Averie is always ready to listen and provide comfort.
-            ### Cora
-            Cora is a trained psychologist who evaluates the interactions between Averie and users. She conducts mental health analyses to identify potential issues and likely reasons. Cora provides insights based on the conversations to ensure users receive the best possible support and guidance.
-            ## Disclaimer 
-            This app is not a substitute for professional mental health treatment. If you are experiencing a mental health crisis or need professional help, please contact a qualified mental health professional.
-            """)
-
+                    
     send_button.click(chat_fn, inputs=[user_input, chatbot, follow_up_input], outputs=chatbot)
     user_input.submit(chat_fn, inputs=[user_input, chatbot, follow_up_input], outputs=chatbot)
     user_input.submit(reset_textbox, [], [user_input])
